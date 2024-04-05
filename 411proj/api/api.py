@@ -41,19 +41,36 @@ def save_discover_weekly():
   try:
     token_info = getToken()
   except:
-    print("User not logged in")                         # TODO: want this to be throwing an error that is passed to frontend somehow though
+    print("User not logged in")                         # TODO: want this to be throwing an error that is passed to frontend using jsonify
     return redirect('/')
 
-  # sp = spotipy.Spotify(auth=token_info['access_token'])
-  # current_playlists = sp.current_user_playlists()['items']
-  # for playlist in current_playlists:
-  #   if (playlist['name'] == "Discover Weekly"):
-  #     discover_weekly_playlist_id = playlist["id"]
-  #   if (playlist['name'] == "Saved Weekly"):
-  #     saved_weekly_playlist_id = playlist["id"]
+  sp = spotipy.Spotify(auth=token_info['access_token'])
+  user_id = sp.current_user()['id']
+  saved_weekly_playlist_id = None
+  discover_weekly_playlist_id = None
 
+  current_playlists = sp.current_user_playlists()['items']
+  for playlist in current_playlists:
+    if (playlist['name'] == "Discover Weekly"):
+      discover_weekly_playlist_id = playlist["id"]
+    if (playlist['name'] == "Saved Weekly"):
+      saved_weekly_playlist_id = playlist["id"]
 
-  return "OAUTH SUCCESS"                                # TODO: make this actually useful for us
+  if not discover_weekly_playlist_id:
+    return "Discover Weekly not found"
+  if not saved_weekly_playlist_id:
+    new_playlist = sp.user_playlist_create(user_id, 'Saved Weekly', True)
+    saved_weekly_playlist_id = new_playlist['id']
+
+  discover_weekly_playlist = sp.playlist_items(discover_weekly_playlist_id)
+  song_uris = []
+  for song in discover_weekly_playlist['items']:
+    song_uri = song['track']['uri']
+    song_uris.append(song_uri)
+  sp.user_playlist_add_tracks(user_id, saved_weekly_playlist_id, song_uris, None)
+
+  return "SAVED WEEKLY SUCCESS"
+  # return "OAUTH SUCCESS"                                # TODO: make this actually useful for us
 
 
 # retrieves or refreshes our token
