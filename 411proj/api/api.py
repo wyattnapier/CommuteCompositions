@@ -1,8 +1,9 @@
 import spotipy                                         
 from spotipy.oauth2 import SpotifyOAuth
 import time
-from flask import Flask, request, url_for, session, redirect
+from flask import Flask, request, url_for, session, redirect, jsonify
 import os
+import sys
 from dotenv import load_dotenv
 
 load_dotenv('.flaskenv')                                # Load environment variables from .flaskenv file
@@ -34,43 +35,92 @@ def redirect_page():
   session[TOKEN_INFO] = token_info
   return redirect(url_for('save_discover_weekly', external=True)) # TODO: update this route to something actually useful for us
 
-# from the video we're following
-@app.route('/saveDiscoverWeekly')                       # TODO: update this route to our core funcitonality
+@app.route('/saveDiscoverWeekly')
 def save_discover_weekly():
+    try:
+        token_info = getToken()
+        if not token_info:
+            raise Exception("User not logged in")
+    except Exception as e:
+        print("Error:", str(e))  # Print error to console
+        return jsonify({"error": str(e)}), 401  # Return error as JSON response with status code 401
 
-  try:
-    token_info = getToken()
-  except:
-    print("User not logged in")                         # TODO: want this to be throwing an error that is passed to frontend using jsonify
-    return redirect('/')
+    try:
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        user_id = sp.current_user()['id']
 
-  sp = spotipy.Spotify(auth=token_info['access_token'])
-  user_id = sp.current_user()['id']
-  saved_weekly_playlist_id = None
-  discover_weekly_playlist_id = None
+        # Retrieve current playlists
+        current_playlists = sp.current_user_playlists()['items']
+        
+        # Print playlist names for debugging
+        for playlist in current_playlists:
+            print(playlist['name'], file=sys.stderr)
 
-  current_playlists = sp.current_user_playlists()['items']
-  for playlist in current_playlists:
-    if (playlist['name'] == "Discover Weekly"):
-      discover_weekly_playlist_id = playlist["id"]
-    if (playlist['name'] == "Saved Weekly"):
-      saved_weekly_playlist_id = playlist["id"]
+        # Find Discover Weekly playlist
+        discover_weekly_playlist_id = None
+        saved_weekly_playlist_id = None
+        for playlist in current_playlists:
+            if playlist['name'] == 'Discover Weekly':
+                discover_weekly_playlist_id = playlist['id']
+            if playlist['name'] == 'Saved Weekly':
+                saved_weekly_playlist_id = playlist['id']
 
-  if not discover_weekly_playlist_id:
-    return "Discover Weekly not found"
-  if not saved_weekly_playlist_id:
-    new_playlist = sp.user_playlist_create(user_id, 'Saved Weekly', True)
-    saved_weekly_playlist_id = new_playlist['id']
+        if not discover_weekly_playlist_id:
+            return jsonify({"Discover Weekly not found"}, 200)
+        
+        # Create "Saved Weekly" playlist if not found
+        if not saved_weekly_playlist_id:
+            new_playlist = sp.user_playlist_create(user_id, 'Saved Weekly', True)
+            saved_weekly_playlist_id = new_playlist['id']
 
-  discover_weekly_playlist = sp.playlist_items(discover_weekly_playlist_id)
-  song_uris = []
-  for song in discover_weekly_playlist['items']:
-    song_uri = song['track']['uri']
-    song_uris.append(song_uri)
-  sp.user_playlist_add_tracks(user_id, saved_weekly_playlist_id, song_uris, None)
+        # Add tracks from Discover Weekly to Saved Weekly playlist
+        discover_weekly_playlist = sp.playlist_items(discover_weekly_playlist_id)
+        song_uris = [song['track']['uri'] for song in discover_weekly_playlist['items']]
+        sp.user_playlist_add_tracks(user_id, saved_weekly_playlist_id, song_uris, None)
 
-  return "SAVED WEEKLY SUCCESS"
-  # return "OAUTH SUCCESS"                                # TODO: make this actually useful for us
+        return jsonify({"ok"}, 200) # return result as 200
+    except Exception as e:
+        print("Error:", str(e))  # Print error to console
+        return jsonify({"error": str(e)}), 500  # Return error as JSON response with status code 500
+
+# # from the video we're following
+# @app.route('/saveDiscoverWeekly')                       # TODO: update this route to our core funcitonality
+# def save_discover_weekly():
+
+#   try:
+#     token_info = getToken()
+#   except:
+#     print("User not logged in")                         # TODO: want this to be throwing an error that is passed to frontend using jsonify
+#     return redirect('/')
+
+#   sp = spotipy.Spotify(auth=token_info['access_token'])
+#   user_id = sp.current_user()['id']
+#   saved_weekly_playlist_id = None
+#   discover_weekly_playlist_id = None
+
+#   current_playlists = sp.current_user_playlists()['items']
+#   for playlist in current_playlists:
+#     print(playlist['name'], file=sys.stderr)
+#     if (playlist['name'] == 'Discover Weekly'):
+#       discover_weekly_playlist_id = playlist['id']
+#     if (playlist['name'] == 'Saved Weekly'):
+#       saved_weekly_playlist_id = playlist['id']
+
+#   if not discover_weekly_playlist_id:
+#     return "Discover Weekly not found"
+#   if not saved_weekly_playlist_id:
+#     new_playlist = sp.user_playlist_create(user_id, 'Saved Weekly', True)
+#     saved_weekly_playlist_id = new_playlist['id']
+
+#   discover_weekly_playlist = sp.playlist_items(discover_weekly_playlist_id)
+#   song_uris = []
+#   for song in discover_weekly_playlist['items']:
+#     song_uri = song['track']['uri']
+#     song_uris.append(song_uri)
+#   sp.user_playlist_add_tracks(user_id, saved_weekly_playlist_id, song_uris, None)
+
+#   return "SAVED WEEKLY SUCCESS"
+#   # return "OAUTH SUCCESS"                                # TODO: make this actually useful for us
 
 
 # retrieves or refreshes our token
@@ -96,8 +146,8 @@ def create_spotify_oauth():
     )
 
 ### sample example from the original setup video
-# @app.route('/time')
-# def get_current_time():
-#   return {'time': time.time()}
+@app.route('/time')
+def get_current_time():
+  return {'time': time.time()}
 
 
