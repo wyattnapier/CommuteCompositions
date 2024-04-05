@@ -13,6 +13,26 @@ function App() {
       });
   }, []);
 
+  const handleSaveDiscoverWeekly = () => {
+    fetch("/saveDiscoverWeekly", {
+      method: "POST",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to save Discover Weekly");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+        // Handle successful response
+      })
+      .catch((error) => {
+        console.error("Error on line 31:", error.message);
+        // Handle error (e.g., display error message to the user)
+      });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -29,6 +49,7 @@ function App() {
           Learn React
         </a>
         <p>The current time is {currentTime}.</p>
+        <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button>
       </header>
     </div>
   );
