@@ -20,6 +20,7 @@ venv
 .env.production.local
 .flaskenv
 __pycache__
+.cache
 
 npm-debug.log*
 yarn-debug.log*
