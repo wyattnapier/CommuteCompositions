@@ -4,6 +4,7 @@ import "./App.css";
 
 function App() {
   const [currentTime, setCurrentTime] = useState(0);
+  const [playlists, setPlaylists] = useState([]);
 
   useEffect(() => {
     fetch("/time")
@@ -13,24 +14,45 @@ function App() {
       });
   }, []);
 
-  const handleSaveDiscoverWeekly = () => {
-    fetch("/saveDiscoverWeekly", {
-      method: "POST",
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to save Discover Weekly");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log(data);
-        // Handle successful response
-      })
-      .catch((error) => {
-        console.error("Error on line 31:", error.message);
-        // Handle error (e.g., display error message to the user)
-      });
+  // const handleSaveDiscoverWeekly = () => {
+  //   fetch("/saveDiscoverWeekly", {
+  //     method: "POST",
+  //   })
+  //     .then((res) => {
+  //       if (!res.ok) {
+  //         throw new Error(`Error: ${res.status}`);
+  //       }
+  //       return res.json();
+  //     })
+  //     .then((data) => {
+  //       console.log(data);
+  //       // Handle successful response here, e.g., displaying a success message to the user
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error:", error);
+  //       // Handle error here, e.g., displaying an error message to the user
+  //     });
+  // };
+
+  // Function to fetch playlists from the backend
+  const fetchPlaylists = async () => {
+    try {
+      // Make a GET request to the /playlists route
+      const response = await fetch("/playlists");
+
+      // Check if the request was successful
+      if (response.ok) {
+        // Parse the JSON response
+        const playlistsData = await response.json();
+
+        // Update the state with the playlists data
+        setPlaylists(playlistsData);
+      } else {
+        console.error("Failed to fetch playlists:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+    }
   };
 
   return (
@@ -49,7 +71,16 @@ function App() {
           Learn React
         </a>
         <p>The current time is {currentTime}.</p>
-        <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button>
+        {/* <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button> */}
+        <h1>User Playlists</h1>
+        <button onClick={fetchPlaylists}>Fetch Playlists</button>
+
+        {/* Display the playlists */}
+        <ul>
+          {playlists.map((playlist) => (
+            <li key={playlist.id}>{playlist.name}</li>
+          ))}
+        </ul>
       </header>
     </div>
   );

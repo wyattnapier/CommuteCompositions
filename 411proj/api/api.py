@@ -5,10 +5,16 @@ from flask import Flask, request, url_for, session, redirect, jsonify
 import os
 import sys
 from dotenv import load_dotenv
+from flask_cors import CORS, cross_origin
 
 load_dotenv('.flaskenv')                                # Load environment variables from .flaskenv file
 
 app = Flask(__name__)
+
+# Enable CORS for passing API responses from backend to frontend
+# CORS(app, supports_credentials=True)
+CORS(app, resources={r"/playlists": {"origins": "http://localhost:3000"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # for some basic security
 app.config['SESSION_COOKIE_NAME'] = 'Spotify Cookie'    # stored cookie used to check authorization on app
@@ -33,55 +39,79 @@ def redirect_page():
   code = request.args.get('code')
   token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
   session[TOKEN_INFO] = token_info
-  return redirect(url_for('save_discover_weekly', external=True)) # TODO: update this route to something actually useful for us
+  return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
 
-@app.route('/saveDiscoverWeekly')
-def save_discover_weekly():
-    try:
-        token_info = getToken()
-        if not token_info:
-            raise Exception("User not logged in")
-    except Exception as e:
-        print("Error:", str(e))  # Print error to console
-        return jsonify({"error": str(e)}), 401  # Return error as JSON response with status code 401
+@app.route('/playlists', methods=['GET'])
+# @cross_origin(supports_credentials=True)
+def get_user_playlists():
+    # login()
+    # # Get the user's access token from the session (or from another source)
+    # token_info = getToken()
+    # access_token = token_info['access_token']
+    # sp = spotipy.Spotify(auth=access_token)
 
-    try:
-        sp = spotipy.Spotify(auth=token_info['access_token'])
-        user_id = sp.current_user()['id']
+    # # Get the user's playlists
+    # playlists = sp.current_user_playlists()
+    # response = jsonify(playlists['items'])
+    # response.headers.add('Access-Control-Allow-Origin', '*')
+    # return response
+    playlists_data = [
+        {"id": "1", "name": "Mooooo"},
+        {"id": "2", "name": "Cow noises"}
+    ]
+    
+    # Return the playlists data as JSON
+    response = jsonify(playlists_data)
+    # add cors
+    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
 
-        # Retrieve current playlists
-        current_playlists = sp.current_user_playlists()['items']
+## my attempt at using json stuff
+# @app.route('/saveDiscoverWeekly', methods=['POST'])
+# def save_discover_weekly():
+#     try:
+#         # Get token and verify it
+#         token_info = getToken()
+#         if not token_info:
+#             raise Exception("User not logged in")
+
+#         # Initialize Spotipy with the access token
+#         sp = spotipy.Spotify(auth=token_info['access_token'])
+#         user_id = sp.current_user()['id']
+
+#         # Retrieve current playlists
+#         current_playlists = sp.current_user_playlists()['items']
+
+#         # Find Discover Weekly and Saved Weekly playlists
+#         discover_weekly_playlist_id = None
+#         saved_weekly_playlist_id = None
+#         for playlist in current_playlists:
+#             if playlist['name'] == 'Discover Weekly':
+#                 discover_weekly_playlist_id = playlist['id']
+#             if playlist['name'] == 'Saved Weekly':
+#                 saved_weekly_playlist_id = playlist['id']
+
+#         if not discover_weekly_playlist_id:
+#             return jsonify({"error": "Discover Weekly not found"}), 404
         
-        # Print playlist names for debugging
-        for playlist in current_playlists:
-            print(playlist['name'], file=sys.stderr)
+#         # Create "Saved Weekly" playlist if it does not exist
+#         if not saved_weekly_playlist_id:
+#             new_playlist = sp.user_playlist_create(user_id, 'Saved Weekly', public=True)
+#             saved_weekly_playlist_id = new_playlist['id']
 
-        # Find Discover Weekly playlist
-        discover_weekly_playlist_id = None
-        saved_weekly_playlist_id = None
-        for playlist in current_playlists:
-            if playlist['name'] == 'Discover Weekly':
-                discover_weekly_playlist_id = playlist['id']
-            if playlist['name'] == 'Saved Weekly':
-                saved_weekly_playlist_id = playlist['id']
+#         # Add tracks from Discover Weekly to Saved Weekly playlist
+#         discover_weekly_playlist = sp.playlist_items(discover_weekly_playlist_id)
+#         song_uris = [song['track']['uri'] for song in discover_weekly_playlist['items']]
+#         sp.user_playlist_add_tracks(user_id, saved_weekly_playlist_id, song_uris)
 
-        if not discover_weekly_playlist_id:
-            return jsonify({"Discover Weekly not found"}, 200)
-        
-        # Create "Saved Weekly" playlist if not found
-        if not saved_weekly_playlist_id:
-            new_playlist = sp.user_playlist_create(user_id, 'Saved Weekly', True)
-            saved_weekly_playlist_id = new_playlist['id']
+#         # Return success response
+#         return jsonify({"message": "SAVED WEEKLY SUCCESS"}), 200
 
-        # Add tracks from Discover Weekly to Saved Weekly playlist
-        discover_weekly_playlist = sp.playlist_items(discover_weekly_playlist_id)
-        song_uris = [song['track']['uri'] for song in discover_weekly_playlist['items']]
-        sp.user_playlist_add_tracks(user_id, saved_weekly_playlist_id, song_uris, None)
+#     except Exception as e:
+#         print("Error:", str(e), file=sys.stderr)
+#         return jsonify({"error": str(e)}), 500  # Return error response with status code 500
 
-        return jsonify({"ok"}, 200) # return result as 200
-    except Exception as e:
-        print("Error:", str(e))  # Print error to console
-        return jsonify({"error": str(e)}), 500  # Return error as JSON response with status code 500
 
 # # from the video we're following
 # @app.route('/saveDiscoverWeekly')                       # TODO: update this route to our core funcitonality
