@@ -42,30 +42,100 @@ def redirect_page():
   return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
 
 @app.route('/playlists', methods=['GET'])
-# @cross_origin(supports_credentials=True)
 def get_user_playlists():
-    # login()
-    # # Get the user's access token from the session (or from another source)
-    # token_info = getToken()
-    # access_token = token_info['access_token']
-    # sp = spotipy.Spotify(auth=access_token)
+    try:
+        # Retrieve the token information
+        token_info = getToken()
+        if not token_info:
+            return jsonify({"error": "No token info found"}), 401
+        
+        # Create a Spotipy client instance using the access token
+        access_token = token_info['access_token']
+        sp = spotipy.Spotify(auth=access_token)
+        
+        # Fetch user playlists using the Spotipy client
+        playlists = sp.current_user_playlists()
+        
+        # Convert playlists to a list of dictionaries (id and name)
+        playlists_data = [{"id": playlist['id'], "name": playlist['name']} for playlist in playlists['items']]
+        
+        # Return playlists data as a JSON response
+        response = jsonify(playlists_data)
+        response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        
+        return response
+    except Exception as e:
+        # Handle exceptions and log errors
+        print(f"Error fetching playlists: {e}", file=sys.stderr)
+        return jsonify({"error": f"Error fetching playlists: {e}"}), 500
+# def get_user_playlists():
+#     # login()
+#     # # Get the user's access token from the session (or from another source)
+#     # token_info = getToken()
+#     # access_token = token_info['access_token']
+#     # sp = spotipy.Spotify(auth=access_token)
 
-    # # Get the user's playlists
-    # playlists = sp.current_user_playlists()
-    # response = jsonify(playlists['items'])
-    # response.headers.add('Access-Control-Allow-Origin', '*')
-    # return response
-    playlists_data = [
-        {"id": "1", "name": "Mooooo"},
-        {"id": "2", "name": "Cow noises"}
-    ]
+#     # # Get the user's playlists
+#     # playlists = sp.current_user_playlists()
+#     # response = jsonify(playlists['items'])
+#     # response.headers.add('Access-Control-Allow-Origin', '*')
+#     # return response
+#     playlists_data = [
+#         {"id": "1", "name": "Mooooo"},
+#         {"id": "2", "name": "Cow noises"}
+#     ]
     
-    # Return the playlists data as JSON
-    response = jsonify(playlists_data)
-    # add cors
-    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    return response
+#     # Return the playlists data as JSON
+#     response = jsonify(playlists_data)
+#     # add cors
+#     response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+#     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+#     return response
+
+# retrieves or refreshes our token
+def getToken():
+  token_info = session.get(TOKEN_INFO, None)
+  if not token_info:                                    # send them back to login if they don't have token
+    redirect(url_for('/login', external=False)) 
+  
+  now = int(time.time())
+  is_expired = token_info['expires_at'] - now < 60      # checks if token is, or is about to, expire
+  if(is_expired):                                       # if true then update token info
+    spotify_oauth = create_spotify_oauth()
+    token_info = spotify_oauth.refresh_access_token(['refresh_token'])
+  return token_info
+
+# begin OAuth
+def create_spotify_oauth():
+  return SpotifyOAuth(                                  # TODO: update the scope parameter for our project
+    client_id = CLIENT_ID, 
+    client_secret = CLIENT_SECRET,
+    redirect_uri = "http://127.0.0.1:5000/redirect", # TODO: change this back to the absolute uri (but it was breaking stuff): url_for('redirect_page', external = True)
+    scope = 'user-library-read playlist-modify-public playlist-modify-private'
+    )
+
+### sample example from the original setup video
+@app.route('/time')
+def get_current_time():
+  return {'time': time.time()}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################################################################################
+# TRASH HEAP
+############################################################################################
 
 ## my attempt at using json stuff
 # @app.route('/saveDiscoverWeekly', methods=['POST'])
@@ -151,33 +221,3 @@ def get_user_playlists():
 
 #   return "SAVED WEEKLY SUCCESS"
 #   # return "OAUTH SUCCESS"                                # TODO: make this actually useful for us
-
-
-# retrieves or refreshes our token
-def getToken():
-  token_info = session.get(TOKEN_INFO, None)
-  if not token_info:                                    # send them back to login if they don't have token
-    redirect(url_for('/login', external=False)) 
-  
-  now = int(time.time())
-  is_expired = token_info['expires_at'] - now < 60      # checks if token is, or is about to, expire
-  if(is_expired):                                       # if true then update token info
-    spotify_oauth = create_spotify_oauth()
-    token_info = spotify_oauth.refresh_access_token(['refresh_token'])
-  return token_info
-
-# begin OAuth
-def create_spotify_oauth():
-  return SpotifyOAuth(                                  # TODO: update the scope parameter for our project
-    client_id = CLIENT_ID, 
-    client_secret = CLIENT_SECRET,
-    redirect_uri = "http://127.0.0.1:5000/redirect", # TODO: change this back to the absolute uri (but it was breaking stuff): url_for('redirect_page', external = True)
-    scope = 'user-library-read playlist-modify-public playlist-modify-private'
-    )
-
-### sample example from the original setup video
-@app.route('/time')
-def get_current_time():
-  return {'time': time.time()}
-
-
