@@ -30,11 +30,13 @@ CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
 @app.route('/')
 def login():
   auth_url = create_spotify_oauth().get_authorize_url()
+  print("hit the login function", auth_url)
   return redirect(auth_url)                             # send the user to the url specificed for OAuth
 
 # used to handle oauth I think?
 @app.route('/redirect')
 def redirect_page():
+  print("made it back from redirect?")
   session.clear()                                       # clear any stored user data
   code = request.args.get('code')
   token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
@@ -45,6 +47,7 @@ def redirect_page():
 def get_user_playlists():
     try:
         # Retrieve the token information
+        # see if the login variable such as token currently has a value or not
         token_info = getToken()
         if not token_info:
             return jsonify({"error": "No token info found"}), 401
@@ -97,7 +100,8 @@ def get_user_playlists():
 def getToken():
   token_info = session.get(TOKEN_INFO, None)
   if not token_info:                                    # send them back to login if they don't have token
-    redirect(url_for('/login', external=False)) 
+    # redirect(url_for('/login', external=False))       # trying to fix the invalid refresh_token
+    login()
   
   now = int(time.time())
   is_expired = token_info['expires_at'] - now < 60      # checks if token is, or is about to, expire
