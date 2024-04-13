@@ -25,7 +25,6 @@ TOKEN_INFO = 'token_info'                               # just a placeholder val
 CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
 
-
 # base route
 @app.route('/')
 def login():
@@ -53,21 +52,35 @@ def get_user_playlists():
             return jsonify({"error": "No token info found"}), 401
         
         # Create a Spotipy client instance using the access token
+        print("1")
         access_token = token_info['access_token']
         sp = spotipy.Spotify(auth=access_token)
         
         # Fetch user playlists using the Spotipy client
         playlists = sp.current_user_playlists()
-        
+        print("2")
         # Convert playlists to a list of dictionaries (id and name)
         playlists_data = [{"id": playlist['id'], "name": playlist['name']} for playlist in playlists['items']]
-        
+        print("3")
         # Return playlists data as a JSON response
         response = jsonify(playlists_data)
+        if not response:
+           return jsonify({"error": "No playlist data found"}), 401
+        
+        ### sample data to test
+        sample_playlists_data = [
+            {"id": "1", "name": "Mooooo"},
+            {"id": "2", "name": "Cow noises"}
+        ]
+        
+        # Return the playlists data as JSON
+        response = jsonify(sample_playlists_data)
+        print("response")
+        print(response)
         response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-        
         return response
+    
     except Exception as e:
         # Handle exceptions and log errors
         print(f"Error fetching playlists: {e}", file=sys.stderr)
@@ -118,6 +131,29 @@ def create_spotify_oauth():
     redirect_uri = "http://127.0.0.1:5000/redirect", # TODO: change this back to the absolute uri (but it was breaking stuff): url_for('redirect_page', external = True)
     scope = 'user-library-read playlist-modify-public playlist-modify-private'
     )
+
+def delete_cache_file(cache_file_path):
+    try:
+        # Check if the file exists
+        if os.path.exists(cache_file_path):
+            # Delete the cache file
+            os.remove(cache_file_path)
+            print(f"Cache file '{cache_file_path}' deleted successfully.")
+        else:
+            print(f"Cache file '{cache_file_path}' does not exist.")
+    except Exception as e:
+        print(f"Error deleting cache file '{cache_file_path}': {e}")
+
+@app.route('/logout')
+def logout_func():
+  session.clear()
+  cache_file_path = "/venv/.cache"
+  delete_cache_file(cache_file_path)
+  auth_url = create_spotify_oauth().get_authorize_url()
+    
+  # Redirect the user to the Spotify OAuth authorization URL
+  return redirect(auth_url)
+  # return "LOGGED OUT"
 
 ### sample example from the original setup video
 @app.route('/time')
