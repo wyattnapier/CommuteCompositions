@@ -5,6 +5,7 @@ import "./App.css";
 function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [playlists, setPlaylists] = useState([]);
+  const [authUrl, setAuthUrl] = useState('');
 
   useEffect(() => {
     fetch("/time")
@@ -14,25 +15,41 @@ function App() {
       });
   }, []);
 
-  // const handleSaveDiscoverWeekly = () => {
-  //   fetch("/saveDiscoverWeekly", {
-  //     method: "POST",
-  //   })
-  //     .then((res) => {
-  //       if (!res.ok) {
-  //         throw new Error(`Error: ${res.status}`);
-  //       }
-  //       return res.json();
-  //     })
-  //     .then((data) => {
-  //       console.log(data);
-  //       // Handle successful response here, e.g., displaying a success message to the user
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error:", error);
-  //       // Handle error here, e.g., displaying an error message to the user
-  //     });
-  // };
+  // useEffect(() => {
+  //   // Fetch the authentication URL when the component mounts
+  //   fetchAuthUrl();
+  // }, []); // Empty dependency array ensures that this effect runs only once when the component mounts
+
+
+  //Function to redirect to the spotify auth page
+  const fetchAuthUrl = async () => {
+    try {
+      const response = await fetch('/login');
+
+      // Check if the response is successful
+      if (!response.ok) {
+        throw new Error(`Failed to fetch auth URL: ${response.statusText}`);
+      }
+
+      // Extract the auth URL from the JSON response
+      const data = await response.json();
+      const newUrl = data.url;
+      console.log("redirecting", newUrl);
+      window.location = newUrl;
+      // Update the state with the auth URL
+      //setAuthUrl(newUrl);
+    } catch (error) {
+      console.error('Redirecting Error', error);
+    }
+  }
+
+  // Call the function to fetch the auth URL when the component mounts
+  //fetchAuthUrl();
+
+  // Redirect function to redirect the user to the auth URL
+  const redirectToAuthUrl = () => {
+    window.location.href = authUrl;
+  };
 
   // Function to fetch playlists from the backend
   const fetchPlaylists = async () => {
@@ -53,6 +70,8 @@ function App() {
     } catch (error) {
       console.error("Error fetching playlists:", error);
     }
+
+
   };
 
   return (
@@ -73,7 +92,13 @@ function App() {
         <p>The current time is {currentTime}.</p>
         {/* <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button> */}
         <h1>User Playlists</h1>
-        <button onClick={fetchPlaylists}>Fetch Playlists</button>
+
+        {/* Conditional rendering of the button */}
+        {!authUrl && (
+          <button onClick={fetchAuthUrl}>Fetch Authentication URL</button>
+        )}
+
+        {authUrl && <button onClick={fetchPlaylists}>Fetch Playlists</button>}
 
         {/* Display the playlists */}
         <ul>

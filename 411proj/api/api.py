@@ -25,12 +25,20 @@ TOKEN_INFO = 'token_info'                               # just a placeholder val
 CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
 
-# base route
 @app.route('/')
+def base():
+   print("hello!")
+   return 
+
+# base route
+@app.route('/login')
 def login():
+  print("went to the login")
   auth_url = create_spotify_oauth().get_authorize_url()
   print("hit the login function", auth_url)
-  return redirect(auth_url)                             # send the user to the url specificed for OAuth
+  return jsonify({'url': auth_url})
+  #return {'url': 'https://accounts.spotify.com/authorize?client_id=efaae7c9827a4ff4b473b2d17920ebad&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A5000%2Fredirect&scope=user-library-read+playlist-modify-public+playlist-modify-private'}
+  #return redirect("https://accounts.spotify.com/authorize?client_id=efaae7c9827a4ff4b473b2d17920ebad&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A5000%2Fredirect&scope=user-library-read+playlist-modify-public+playlist-modify-private")                             # send the user to the url specificed for OAuth
 
 # used to handle oauth I think?
 @app.route('/redirect')
@@ -45,9 +53,11 @@ def redirect_page():
 @app.route('/playlists', methods=['GET'])
 def get_user_playlists():
     try:
+        print("get_user_playlists")
         # Retrieve the token information
         # see if the login variable such as token currently has a value or not
         token_info = getToken()
+        print("playlist token_info:", token_info)
         if not token_info:
             return jsonify({"error": "No token info found"}), 401
         
@@ -64,6 +74,7 @@ def get_user_playlists():
         print("3")
         # Return playlists data as a JSON response
         response = jsonify(playlists_data)
+        print(response)
         if not response:
            return jsonify({"error": "No playlist data found"}), 401
         
@@ -72,7 +83,7 @@ def get_user_playlists():
             {"id": "1", "name": "Mooooo"},
             {"id": "2", "name": "Cow noises"}
         ]
-        
+
         # Return the playlists data as JSON
         response = jsonify(sample_playlists_data)
         print("response")
@@ -85,33 +96,13 @@ def get_user_playlists():
         # Handle exceptions and log errors
         print(f"Error fetching playlists: {e}", file=sys.stderr)
         return jsonify({"error": f"Error fetching playlists: {e}"}), 500
-# def get_user_playlists():
-#     # login()
-#     # # Get the user's access token from the session (or from another source)
-#     # token_info = getToken()
-#     # access_token = token_info['access_token']
-#     # sp = spotipy.Spotify(auth=access_token)
 
-#     # # Get the user's playlists
-#     # playlists = sp.current_user_playlists()
-#     # response = jsonify(playlists['items'])
-#     # response.headers.add('Access-Control-Allow-Origin', '*')
-#     # return response
-#     playlists_data = [
-#         {"id": "1", "name": "Mooooo"},
-#         {"id": "2", "name": "Cow noises"}
-#     ]
-    
-#     # Return the playlists data as JSON
-#     response = jsonify(playlists_data)
-#     # add cors
-#     response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-#     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-#     return response
 
 # retrieves or refreshes our token
 def getToken():
+  print("getToken")
   token_info = session.get(TOKEN_INFO, None)
+  print("getToken 1")
   if not token_info:                                    # send them back to login if they don't have token
     # redirect(url_for('/login', external=False))       # trying to fix the invalid refresh_token
     login()
@@ -121,15 +112,17 @@ def getToken():
   if(is_expired):                                       # if true then update token info
     spotify_oauth = create_spotify_oauth()
     token_info = spotify_oauth.refresh_access_token(['refresh_token'])
+  print("token:", token_info)
   return token_info
 
 # begin OAuth
 def create_spotify_oauth():
+  print("create oauth")
   return SpotifyOAuth(                                  # TODO: update the scope parameter for our project
-    client_id = CLIENT_ID, 
-    client_secret = CLIENT_SECRET,
-    redirect_uri = "http://127.0.0.1:5000/redirect", # TODO: change this back to the absolute uri (but it was breaking stuff): url_for('redirect_page', external = True)
-    scope = 'user-library-read playlist-modify-public playlist-modify-private'
+    client_id=CLIENT_ID, 
+    client_secret=CLIENT_SECRET,
+    redirect_uri="http://127.0.0.1:5000/redirect", # TODO: change this back to the absolute uri (but it was breaking stuff): url_for('redirect_page', external = True)
+    scope='user-library-read playlist-modify-public playlist-modify-private'
     )
 
 def delete_cache_file(cache_file_path):
@@ -176,6 +169,33 @@ def get_current_time():
 ############################################################################################
 # TRASH HEAP
 ############################################################################################
+
+# def get_user_playlists():
+#     # login()
+#     # # Get the user's access token from the session (or from another source)
+#     # token_info = getToken()
+#     # access_token = token_info['access_token']
+#     # sp = spotipy.Spotify(auth=access_token)
+
+#     # # Get the user's playlists
+#     # playlists = sp.current_user_playlists()
+#     # response = jsonify(playlists['items'])
+#     # response.headers.add('Access-Control-Allow-Origin', '*')
+#     # return response
+#     playlists_data = [
+#         {"id": "1", "name": "Mooooo"},
+#         {"id": "2", "name": "Cow noises"}
+#     ]
+    
+#     # Return the playlists data as JSON
+#     response = jsonify(playlists_data)
+#     # add cors
+#     response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+#     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+#     return response
+
+
+
 
 ## my attempt at using json stuff
 # @app.route('/saveDiscoverWeekly', methods=['POST'])
