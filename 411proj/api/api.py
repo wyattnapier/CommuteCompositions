@@ -16,6 +16,8 @@ app = Flask(__name__)
 CORS(app, resources={r"/playlists": {"origins": "http://localhost:3000"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+app.config['FRONTEND_URL'] = 'http://localhost:3000'
+ 
 # for some basic security
 app.config['SESSION_COOKIE_NAME'] = 'Spotify Cookie'    # stored cookie used to check authorization on app
 app.secret_key = 'ajk132dvaj21#783@#$kl'                # arbitrary string used in tandem with cookie
@@ -48,16 +50,26 @@ def redirect_page():
   code = request.args.get('code')
   token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
   session[TOKEN_INFO] = token_info
-  return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
+  #return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
+
+  #going to try to redirect here back to the front end (idk how to acc do that)
+  #return json? and then within App.js we could try to do an await function and then switch to localhost from there? 
+  # frontend_url = app.config['FRONTEND_URL']
+  # print("should be going to frontend now")
+  # return jsonify({'redirect_url': frontend_url})
+  return redirect("http://localhost:3000/playlists")
+  
+  #return jsonify({'returned': True})
 
 @app.route('/playlists', methods=['GET'])
 def get_user_playlists():
     try:
+        print("GETTING PLAYLISTS")
         print("get_user_playlists")
         # Retrieve the token information
         # see if the login variable such as token currently has a value or not
         token_info = getToken()
-        print("playlist token_info:", token_info)
+        #print("playlist token_info:", token_info)
         if not token_info:
             return jsonify({"error": "No token info found"}), 401
         
@@ -74,7 +86,7 @@ def get_user_playlists():
         print("3")
         # Return playlists data as a JSON response
         response = jsonify(playlists_data)
-        print(response)
+        # print(response)
         if not response:
            return jsonify({"error": "No playlist data found"}), 401
         
@@ -85,7 +97,7 @@ def get_user_playlists():
         ]
 
         # Return the playlists data as JSON
-        response = jsonify(sample_playlists_data)
+        #response = jsonify(sample_playlists_data)
         print("response")
         print(response)
         response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
@@ -102,7 +114,7 @@ def get_user_playlists():
 def getToken():
   print("getToken")
   token_info = session.get(TOKEN_INFO, None)
-  print("getToken 1")
+  #print("getToken 1")
   if not token_info:                                    # send them back to login if they don't have token
     # redirect(url_for('/login', external=False))       # trying to fix the invalid refresh_token
     login()
@@ -112,18 +124,19 @@ def getToken():
   if(is_expired):                                       # if true then update token info
     spotify_oauth = create_spotify_oauth()
     token_info = spotify_oauth.refresh_access_token(['refresh_token'])
-  print("token:", token_info)
+  #print("token:", token_info)
   return token_info
 
 # begin OAuth
 def create_spotify_oauth():
   print("create oauth")
-  return SpotifyOAuth(                                  # TODO: update the scope parameter for our project
+  frontend_url = app.config['FRONTEND_URL']
+  return SpotifyOAuth(                                # TODO: update the scope parameter for our project
     client_id=CLIENT_ID, 
     client_secret=CLIENT_SECRET,
-    redirect_uri="http://127.0.0.1:5000/redirect", # TODO: change this back to the absolute uri (but it was breaking stuff): url_for('redirect_page', external = True)
+    redirect_uri="http://127.0.0.1:5000/redirect", #"http://localhost:3000", # TODO: change this back to the absolute uri (but it was breaking stuff): url_for('redirect_page', external = True)
     scope='user-library-read playlist-modify-public playlist-modify-private'
-    )
+  )
 
 def delete_cache_file(cache_file_path):
     try:
