@@ -57,7 +57,7 @@ def redirect_page():
   # frontend_url = app.config['FRONTEND_URL']
   # print("should be going to frontend now")
   # return jsonify({'redirect_url': frontend_url})
-  return redirect("http://localhost:3000/playlists")
+  return redirect("http://localhost:3000")
   
   #return jsonify({'returned': True})
 
