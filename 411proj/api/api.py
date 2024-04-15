@@ -51,7 +51,8 @@ def redirect_page():
   token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
   session[TOKEN_INFO] = token_info
   #return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
-
+  
+  
   #going to try to redirect here back to the front end (idk how to acc do that)
   #return json? and then within App.js we could try to do an await function and then switch to localhost from there? 
   # frontend_url = app.config['FRONTEND_URL']
@@ -59,7 +60,6 @@ def redirect_page():
   # return jsonify({'redirect_url': frontend_url})
   return redirect("http://localhost:3000")
   
-  #return jsonify({'returned': True})
 
 @app.route('/playlists', methods=['GET'])
 def get_user_playlists():
