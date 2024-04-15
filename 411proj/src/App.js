@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
+//import { BrowserRouter as Router } from "react-router-dom";
 
 function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [playlists, setPlaylists] = useState([]);
   const [authUrl, setAuthUrl] = useState('');
+  const [playlistsFetched, setPlaylistsFetched] = useState(false);
 
   useEffect(() => {
     fetch("/time")
@@ -38,6 +40,7 @@ function App() {
       window.location = newUrl;
       // Update the state with the auth URL
       //setAuthUrl(newUrl);
+
     } catch (error) {
       console.error('Redirecting Error', error);
     }
@@ -47,16 +50,17 @@ function App() {
   //fetchAuthUrl();
 
   // Redirect function to redirect the user to the auth URL
-  const redirectToAuthUrl = () => {
-    window.location.href = authUrl;
-  };
+  // const redirectToAuthUrl = () => {
+  //   window.location.href = authUrl;
+  // };
+
 
   // Function to fetch playlists from the backend
   const fetchPlaylists = async () => {
     try {
       // Make a GET request to the /playlists route
       const response = await fetch("/playlists");
-
+      console.log("fetched playlists");
       // Check if the request was successful
       if (response.ok) {
         // Parse the JSON response
@@ -64,6 +68,7 @@ function App() {
 
         // Update the state with the playlists data
         setPlaylists(playlistsData);
+        setPlaylistsFetched(true);
       } else {
         console.error("Failed to fetch playlists:", response.statusText);
       }
@@ -93,12 +98,24 @@ function App() {
         {/* <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button> */}
         <h1>User Playlists</h1>
 
-        {/* Conditional rendering of the button */}
-        {!authUrl && (
-          <button onClick={fetchAuthUrl}>Log In</button>
+        {playlistsFetched && (
+          <>
+            <h1>User Playlists</h1>
+            {/* Display the playlists */}
+            <ul>
+              {playlists.map((playlist) => (
+                <li key={playlist.id}>{playlist.name}</li>
+              ))}
+            </ul>
+          </>
         )}
 
-        {authUrl && <button onClick={fetchPlaylists}>Fetch Playlists</button>}
+        {/* Conditional rendering of the button */}
+        {!authUrl && (
+          <button onClick={fetchAuthUrl}>Sign In</button>
+        )}
+
+        {/* {authUrl && <button onClick={fetchPlaylists}>Fetch Playlists</button>} */}
 
         {/* Display the playlists */}
         <ul>
