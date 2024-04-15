@@ -48,7 +48,9 @@ def redirect_page():
   code = request.args.get('code')
   token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
   session[TOKEN_INFO] = token_info
-  return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
+  #return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
+
+  return redirect("http://localhost:3000/")
 
 @app.route('/playlists', methods=['GET'])
 def get_user_playlists():

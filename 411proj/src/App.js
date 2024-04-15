@@ -95,7 +95,7 @@ function App() {
 
         {/* Conditional rendering of the button */}
         {!authUrl && (
-          <button onClick={fetchAuthUrl}>Fetch Authentication URL</button>
+          <button onClick={fetchAuthUrl}>Log In</button>
         )}
 
         {authUrl && <button onClick={fetchPlaylists}>Fetch Playlists</button>}
