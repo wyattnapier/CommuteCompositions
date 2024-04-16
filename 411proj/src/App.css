@@ -32,7 +32,28 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+.large-button {
+  font-size: 75px;
+  /* Adjust the font size as needed */
+  padding: 40px 80px;
+  /* Adjust the padding as needed */
+  background-color: green;
+  /* Change the background color to green */
+  color: white;
+  /* Change the text color to white */
+  border: none;
+  /* Remove the button border */
+  border-radius: 5px;
+  /* Add border radius for rounded corners */
+}
+
+
+h1 {
+  font-size: 90px;
 }

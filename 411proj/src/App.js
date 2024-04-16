@@ -77,11 +77,11 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
+        {/* <img src={logo} className="App-logo" alt="logo" /> */}
+        {/* <p>
           Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
+        </p> */}
+        {/* <a
           className="App-link"
           href="https://reactjs.org"
           target="_blank"
@@ -89,16 +89,18 @@ function App() {
         >
           Learn React
         </a>
-        <p>The current time is {currentTime}.</p>
+        <p>The current time is {currentTime}.</p> */}
         {/* <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button> */}
-        <h1>User Playlists</h1>
+        <h1>Commute Compositions</h1>
 
         {/* Conditional rendering of the button */}
         {!authUrl && (
-          <button onClick={fetchAuthUrl}>Log In</button>
+          <button className="large-button" onClick={fetchAuthUrl}>Log In</button>
         )}
 
-        {authUrl && <button onClick={fetchPlaylists}>Fetch Playlists</button>}
+        {authUrl && <button size="lg" onClick={fetchPlaylists}>Fetch Playlists</button>}
+
+
 
         {/* Display the playlists */}
         <ul>

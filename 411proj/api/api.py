@@ -156,6 +156,9 @@ def get_current_time():
   return {'time': time.time()}
 
 
+# #function to return that we have signed into the spotify 
+# def return_oauth():
+  
 
 
 
