@@ -25,8 +25,14 @@ TOKEN_INFO = 'token_info'                               # just a placeholder val
 CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
 
+#global variable for the logged in status
+#TODO: this is not reliable at all, so try to use session info
+logged_in = False
+
 @app.route('/')
 def base():
+   global logged_in
+   logged_in = False
    print("hello!")
    return 
 
@@ -47,9 +53,15 @@ def redirect_page():
   session.clear()                                       # clear any stored user data
   code = request.args.get('code')
   token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
-  session[TOKEN_INFO] = token_info
+  session[TOKEN_INFO] = token_info 
+  print("redirect token_info:", token_info)
+  print("big token:", session[TOKEN_INFO])
+  global logged_in 
+  logged_in = True
+  # session[LOGGED_IN] = True
+  # print("redirect log:", LOGGED_IN)
   #return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
-
+  # return_oauth()
   return redirect("http://localhost:3000/")
 
 @app.route('/playlists', methods=['GET'])
@@ -58,6 +70,7 @@ def get_user_playlists():
         print("get_user_playlists")
         # Retrieve the token information
         # see if the login variable such as token currently has a value or not
+        print("playlist token:", session[TOKEN_INFO])
         token_info = getToken()
         print("playlist token_info:", token_info)
         if not token_info:
@@ -108,7 +121,8 @@ def getToken():
   if not token_info:                                    # send them back to login if they don't have token
     # redirect(url_for('/login', external=False))       # trying to fix the invalid refresh_token
     login()
-  
+  print("getToken 2")
+  print("token:", token_info)
   now = int(time.time())
   is_expired = token_info['expires_at'] - now < 60      # checks if token is, or is about to, expire
   if(is_expired):                                       # if true then update token info
@@ -156,9 +170,17 @@ def get_current_time():
   return {'time': time.time()}
 
 
-# #function to return that we have signed into the spotify 
-# def return_oauth():
-  
+#function to return that we have signed into the spotify 
+@app.route('/ret')
+def return_oauth():
+  print("at return function")
+  #token_info = session.get(TOKEN_INFO, None)
+  global logged_in
+  if not logged_in:
+     print("returns false")
+     return {'loggedIn': False}
+  print("should be true")
+  return {'loggedIn': True}
 
 
 

@@ -6,6 +6,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [playlists, setPlaylists] = useState([]);
   const [authUrl, setAuthUrl] = useState('');
+  const [isLoggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     fetch("/time")
@@ -15,11 +16,22 @@ function App() {
       });
   }, []);
 
+  useEffect(() => {
+    fetchLoggedIn();
+  }, []);
+
   // useEffect(() => {
   //   // Fetch the authentication URL when the component mounts
   //   fetchAuthUrl();
   // }, []); // Empty dependency array ensures that this effect runs only once when the component mounts
 
+  // useEffect(() => {
+  //   fetch("/ret")
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       setLoggedIn(data.loggedIn);
+  //     })
+  // })
 
   //Function to redirect to the spotify auth page
   const fetchAuthUrl = async () => {
@@ -36,12 +48,35 @@ function App() {
       const newUrl = data.url;
       console.log("redirecting", newUrl);
       window.location = newUrl;
+
+      //temporarily just have isLoggedIn set to true always here
+      //TODO: fix this so that it will actually change depending on user input
+      // setLoggedIn(true);
+      // console.log(isLoggedIn);
+
       // Update the state with the auth URL
       //setAuthUrl(newUrl);
     } catch (error) {
       console.error('Redirecting Error', error);
     }
   }
+
+  const fetchLoggedIn = async () => {
+    try {
+      const response = await fetch('/ret');
+
+      if (!response.ok) {
+        throw new Error(`Failed to get login info: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("logged in", data.loggedIn);
+      setLoggedIn(data.loggedIn);
+
+    } catch (error) {
+      console.error('login info error', error);
+    }
+  };
 
   // Call the function to fetch the auth URL when the component mounts
   //fetchAuthUrl();
@@ -94,13 +129,19 @@ function App() {
         <h1>Commute Compositions</h1>
 
         {/* Conditional rendering of the button */}
-        {!authUrl && (
+        {/* {!authUrl && (
+          <button className="large-button" onClick={fetchAuthUrl}>Log In</button>
+        )} */}
+
+        {/* {authUrl && <button size="lg" onClick={fetchPlaylists}>Fetch Playlists</button>} */}
+        {isLoggedIn ? (
+          <div>
+            <p>Logged In!</p>
+            {/* <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button> */}
+          </div>
+        ) : (
           <button className="large-button" onClick={fetchAuthUrl}>Log In</button>
         )}
-
-        {authUrl && <button size="lg" onClick={fetchPlaylists}>Fetch Playlists</button>}
-
-
 
         {/* Display the playlists */}
         <ul>
