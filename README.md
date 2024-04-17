@@ -15,7 +15,9 @@ source venv/bin/activate
 ```
 #### If you haven't yet imported any packages, you will need to run the following commands:
 ```
-fill these in later
+pip install flask
+pip install spotipy
+pip install flask-dotenv
 ```
 #### Finally, to run the code open another terminal, let's call in Terminal B, and there, from the 411proj directory, run
 ```
