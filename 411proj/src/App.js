@@ -20,6 +20,17 @@ function App() {
     fetchLoggedIn();
   }, []);
 
+  fetch('/').then(response => {
+    if (response.ok) {
+      console.log('Session variable initialized.');
+      // Handle further actions after session initialization if needed
+    } else {
+      console.error('Failed to initialize session variable.');
+    }
+  }).catch(error => {
+    console.error('Error fetching data:', error);
+  });
+
   // useEffect(() => {
   //   // Fetch the authentication URL when the component mounts
   //   fetchAuthUrl();
@@ -137,7 +148,7 @@ function App() {
         {isLoggedIn ? (
           <div>
             <p>Logged In!</p>
-            {/* <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button> */}
+            <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button>
           </div>
         ) : (
           <button className="large-button" onClick={fetchAuthUrl}>Log In</button>

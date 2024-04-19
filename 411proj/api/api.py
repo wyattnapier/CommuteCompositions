@@ -7,6 +7,8 @@ import sys
 from dotenv import load_dotenv
 from flask_cors import CORS, cross_origin
 
+from random import randint
+
 load_dotenv('.flaskenv')                                # Load environment variables from .flaskenv file
 
 app = Flask(__name__)
@@ -27,21 +29,25 @@ CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
 
 #global variable for the logged in status
 #TODO: this is not reliable at all, so try to use session info
-logged_in = False
+# logged_in = False
 
 @app.route('/')
 def base():
-   global logged_in
-   logged_in = False
-   print("hello!")
-   return 
+  #  global logged_in
+  #  logged_in = False 
+  session['logged_in'] = False
+  session['id'] = randint(0, 10)
+  print("hello! IS THIS WORKING???")
+  return 
 
 # base route
 @app.route('/login')
 def login():
+  print("sessionID", session.get('id'))
+  print("session_data", session)
   print("went to the login")
-  auth_url = create_spotify_oauth().get_authorize_url()
-  print("hit the login function", auth_url)
+  sp_oauth = create_spotify_oauth()
+  auth_url = sp_oauth.get_authorize_url()
   return jsonify({'url': auth_url})
   #return {'url': 'https://accounts.spotify.com/authorize?client_id=efaae7c9827a4ff4b473b2d17920ebad&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A5000%2Fredirect&scope=user-library-read+playlist-modify-public+playlist-modify-private'}
   #return redirect("https://accounts.spotify.com/authorize?client_id=efaae7c9827a4ff4b473b2d17920ebad&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A5000%2Fredirect&scope=user-library-read+playlist-modify-public+playlist-modify-private")                             # send the user to the url specificed for OAuth
@@ -49,20 +55,29 @@ def login():
 # used to handle oauth I think?
 @app.route('/redirect')
 def redirect_page():
+  print("session_data", session)
   print("made it back from redirect?")
-  session.clear()                                       # clear any stored user data
+  # session.clear()                                       # clear any stored user data
+  print("session_data", session)
   code = request.args.get('code')
-  token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
+  #token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
+  sp_oauth = create_spotify_oauth()
+  token_info = sp_oauth.get_access_token(code)
   session[TOKEN_INFO] = token_info 
   print("redirect token_info:", token_info)
   print("big token:", session[TOKEN_INFO])
-  global logged_in 
-  logged_in = True
+  # global logged_in 
+  # logged_in = True
+  session['logged_in'] = True
+  print("sessionLog", session.get('logged_in'))
+  print("sessionID", session.get('id'))
   # session[LOGGED_IN] = True
   # print("redirect log:", LOGGED_IN)
   #return redirect(url_for('get_user_playlists', external=True)) # TODO: update this route to something actually useful for us
   # return_oauth()
+  print("session_data", session)
   return redirect("http://localhost:3000/")
+
 
 @app.route('/playlists', methods=['GET'])
 def get_user_playlists():
@@ -70,7 +85,7 @@ def get_user_playlists():
         print("get_user_playlists")
         # Retrieve the token information
         # see if the login variable such as token currently has a value or not
-        print("playlist token:", session[TOKEN_INFO])
+        # print("playlist token:", session[TOKEN_INFO])
         token_info = getToken()
         print("playlist token_info:", token_info)
         if not token_info:
@@ -117,7 +132,7 @@ def get_user_playlists():
 def getToken():
   print("getToken")
   token_info = session.get(TOKEN_INFO, None)
-  print("getToken 1")
+  print("getToken 1", token_info)
   if not token_info:                                    # send them back to login if they don't have token
     # redirect(url_for('/login', external=False))       # trying to fix the invalid refresh_token
     login()
@@ -175,8 +190,11 @@ def get_current_time():
 def return_oauth():
   print("at return function")
   #token_info = session.get(TOKEN_INFO, None)
-  global logged_in
-  if not logged_in:
+  # global logged_in
+  print("session_data", session)
+  print("sessionID", session.get('id'))
+  print("sessionLog", session.get('logged_in'))
+  if not session.get('logged_in'):
      print("returns false")
      return {'loggedIn': False}
   print("should be true")
