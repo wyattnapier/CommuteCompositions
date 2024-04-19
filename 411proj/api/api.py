@@ -36,16 +36,16 @@ server_session = Session(app)
 
 #global variable for the logged in status
 #TODO: this is not reliable at all, so try to use session info
-logged_in = False
+# logged_in = False
 
 @app.route('/')
 def base():
-  global logged_in
-  logged_in = False 
-  # session['logged_in'] = False
+  # global logged_in
+  # logged_in = False 
+  session['logged_in'] = False
   # session['id'] = randint(0, 10)
   print("hello! IS THIS WORKING???")
-  return 
+  return jsonify({'completed': True})
 
 # base route
 @app.route('/login')
@@ -69,18 +69,18 @@ def redirect_page():
   #token_info = create_spotify_oauth().get_access_token(code) # exchanges auth code for access token that we store
   sp_oauth = create_spotify_oauth()
   token_info = sp_oauth.get_access_token(code)
-  # session[TOKEN_INFO] = token_info 
-  global TOKEN_INFO
-  TOKEN_INFO = token_info
+  session[TOKEN_INFO] = token_info 
+  # global TOKEN_INFO
+  # TOKEN_INFO = token_info
 
   print("redirect token_info:", token_info)
   # print("big token:", session[TOKEN_INFO])
-  global logged_in 
-  logged_in = True
+  # global logged_in 
+  # logged_in = True
 
   global COMMUTE_TIME
   COMMUTE_TIME = 300000
-  # # session['logged_in'] = True
+  session['logged_in'] = True
   # print("sessionLog", session.get('logged_in'))
   # print("sessionID", session.get('id'))
   # session[LOGGED_IN] = True
@@ -143,9 +143,9 @@ def get_user_playlists():
 # retrieves or refreshes our token
 def getToken():
   print("getToken")
-  # token_info = session.get(TOKEN_INFO, None)
-  global TOKEN_INFO 
-  token_info = TOKEN_INFO
+  token_info = session.get(TOKEN_INFO, None)
+  # global TOKEN_INFO 
+  # token_info = TOKEN_INFO
   print("getToken 1", token_info)
   if not token_info:                                    # send them back to login if they don't have token
     # redirect(url_for('/login', external=False))       # trying to fix the invalid refresh_token
@@ -204,11 +204,11 @@ def get_current_time():
 def return_oauth():
   print("at return function")
   # token_info = session.get(TOKEN_INFO, None)
-  global logged_in
+  # global logged_in
   # print("session_data", session)
   # print("sessionID", session.get('id'))
   # print("sessionLog", session.get('logged_in'))
-  if not logged_in:
+  if not session.get('logged_in'):
      print("returns false")
      return {'loggedIn': False}
   print("should be true")
