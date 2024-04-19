@@ -7,6 +7,7 @@ function App() {
   const [playlists, setPlaylists] = useState([]);
   const [authUrl, setAuthUrl] = useState('');
   const [isLoggedIn, setLoggedIn] = useState(false);
+  const [madePlaylist, setMade] = useState(false);
 
   useEffect(() => {
     fetch("/time")
@@ -116,9 +117,22 @@ function App() {
     } catch (error) {
       console.error("Error fetching playlists:", error);
     }
-
-
   };
+
+  const makePlaylist = async () => {
+    try {
+      const response = await fetch("/createPlaylist")
+      if (response.ok) {
+        const playlistData = await response.json();
+        // setMade(playlistData);
+        setMade(true)
+      } else {
+        console.error("Failed to fetch playlists:", response.statusText);
+      }
+    } catch (error) {
+      console.error("error fetching playlists:", error);
+    }
+  }
 
   return (
     <div className="App">
@@ -148,7 +162,21 @@ function App() {
         {isLoggedIn ? (
           <div>
             <p>Logged In!</p>
-            <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button>
+            {/* <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button> */}
+            {/* <button className="large-button" onClick={makePlaylist && fetchPlaylists}>Make Playlists</button> */}
+            <button className="large-button" onClick={() => {
+              makePlaylist();
+              fetchPlaylists();
+            }}>Make Playlists</button>
+            {madePlaylist ? (
+              <ul>
+                {playlists.map((playlist) => (
+                  <li key={playlist.id}>{playlist.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <></>
+            )}
           </div>
         ) : (
           <button className="large-button" onClick={fetchAuthUrl}>Log In</button>
