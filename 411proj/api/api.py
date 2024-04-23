@@ -7,6 +7,7 @@ import sys
 from dotenv import load_dotenv
 from flask_cors import CORS, cross_origin
 from flask_session import Session
+import requests
 
 from random import randint, random
 
@@ -31,6 +32,8 @@ TOKEN_INFO = 'token_info'                               # just a placeholder val
 # access environment values from the .flaskenv file
 CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
+
+GOOGLE_MAPS_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
 
 server_session = Session(app)
 
@@ -270,7 +273,22 @@ def get_random_tracks(sp, num_tracks=3):
   print("tracks", track_uris)
   return track_uris
     
-
+@app.route('/getDistInfo') 
+def get_distance_matrix():
+    print("google maps stuff")
+    # data = request.get_json()
+    print(1)
+    origins = request.args.get('origins')
+    destinations = request.args.get('destinations')
+    # api_key = 'YOUR_API_KEY'
+    # url = f'https://maps.googleapis.com/maps/api/distancematrix/json?origins={origins}&destinations={destinations}&key={api_key}'
+    print(2)
+    url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=San%20Francisco%7CVictoria%20BC&language=fr-FR&mode=bicycling&origins=Vancouver%20BC%7CSeattle&key={GOOGLE_MAPS_KEY}'
+    print(3)
+    response = requests.get(url)
+    print(4)
+    print(response.json())
+    return jsonify(response.json())
 
 
 

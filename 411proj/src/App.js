@@ -134,6 +134,20 @@ function App() {
     }
   }
 
+  const getRoute = async () => {
+    try {
+      const response = await fetch("/getDistInfo")
+      if (response.ok) {
+        const routeData = await response.json();
+
+      } else {
+        console.error("Failed to get route:", response.statusText)
+      }
+    } catch (error) {
+      console.error("error fetching playlists:", error)
+    }
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -179,7 +193,8 @@ function App() {
             )}
           </div>
         ) : (
-          <button className="large-button" onClick={fetchAuthUrl}>Log In</button>
+          // <button className="large-button" onClick={fetchAuthUrl}>Log In</button>
+          <button className="large-button" onClick={getRoute}>Log In</button>
         )}
 
         {/* Display the playlists */}
