@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
+// import { GooglePlacesAutocomplete } from "react-google-places-autocomplete";
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 
 function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [playlists, setPlaylists] = useState([]);
-  const [authUrl, setAuthUrl] = useState('');
+  const [authUrl, setAuthUrl] = useState("");
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [madePlaylist, setMade] = useState(false);
+  const [destination, setDestination] = useState("");
+  const [source, setSource] = useState("");
+  const [gMapsApiKey, setGMapsApiKey] = useState("");
+  // let gMapsApiKey = "";
 
   useEffect(() => {
     fetch("/time")
@@ -19,18 +25,21 @@ function App() {
 
   useEffect(() => {
     fetchLoggedIn();
+    fetchAPIKey();
   }, []);
 
-  fetch('/').then(response => {
-    if (response.ok) {
-      console.log('Session variable initialized.');
-      // Handle further actions after session initialization if needed
-    } else {
-      console.error('Failed to initialize session variable.');
-    }
-  }).catch(error => {
-    console.error('Error fetching data:', error);
-  });
+  fetch("/")
+    .then((response) => {
+      if (response.ok) {
+        console.log("Session variable initialized.");
+        // Handle further actions after session initialization if needed
+      } else {
+        console.error("Failed to initialize session variable.");
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching data:", error);
+    });
 
   // useEffect(() => {
   //   // Fetch the authentication URL when the component mounts
@@ -48,7 +57,7 @@ function App() {
   //Function to redirect to the spotify auth page
   const fetchAuthUrl = async () => {
     try {
-      const response = await fetch('/login');
+      const response = await fetch("/login");
 
       // Check if the response is successful
       if (!response.ok) {
@@ -69,13 +78,13 @@ function App() {
       // Update the state with the auth URL
       //setAuthUrl(newUrl);
     } catch (error) {
-      console.error('Redirecting Error', error);
+      console.error("Redirecting Error", error);
     }
-  }
+  };
 
   const fetchLoggedIn = async () => {
     try {
-      const response = await fetch('/ret');
+      const response = await fetch("/ret");
 
       if (!response.ok) {
         throw new Error(`Failed to get login info: ${response.statusText}`);
@@ -84,9 +93,24 @@ function App() {
       const data = await response.json();
       console.log("logged in", data.loggedIn);
       setLoggedIn(data.loggedIn);
-
     } catch (error) {
-      console.error('login info error', error);
+      console.error("login info error", error);
+    }
+  };
+
+  const fetchAPIKey = async () => {
+    try {
+      const response = await fetch("/api/google-maps-api-key");
+
+      if (!response.ok) {
+        throw new Error(`Failed to get api key: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("api key", data.api_key);
+      setGMapsApiKey(data.api_key);
+    } catch (error) {
+      console.error("api key retrieval error", error);
     }
   };
 
@@ -121,49 +145,53 @@ function App() {
 
   const makePlaylist = async () => {
     try {
-      const response = await fetch("/createPlaylist")
+      const response = await fetch("/createPlaylist");
       if (response.ok) {
         const playlistData = await response.json();
         // setMade(playlistData);
-        setMade(true)
+        setMade(true);
       } else {
         console.error("Failed to fetch playlists:", response.statusText);
       }
     } catch (error) {
       console.error("error fetching playlists:", error);
     }
-  }
+  };
+
+  // gets the google maps api key from the backend's flaskenv file
+  // fetch("/api/google-maps-api-key")
+  //   .then((response) => response.json())
+  //   .then((data) => {
+  //     // setGMapsApiKey(data.api_key);
+  //     gMapsApiKey = data.api_key;
+  //     console.log("first one: ", gMapsApiKey);
+  //     // Now you can use the apiKey in your Google Places Autocomplete component
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error fetching Google Maps API key:", error);
+  //   });
 
   const getRoute = async () => {
     try {
-      const response = await fetch("/getDistInfo")
+      const response = await fetch("/getDistInfo");
       if (response.ok) {
         const routeData = await response.json();
-
       } else {
-        console.error("Failed to get route:", response.statusText)
+        console.error("Failed to get route:", response.statusText);
       }
     } catch (error) {
-      console.error("error fetching playlists:", error)
+      console.error("error fetching playlists:", error);
     }
-  }
+  };
+
+  const handleDestSelect = (place) => {
+    setDestination(place);
+  };
 
   return (
     <div className="App">
       <header className="App-header">
-        {/* <img src={logo} className="App-logo" alt="logo" /> */}
-        {/* <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p> */}
-        {/* <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <p>The current time is {currentTime}.</p> */}
+        {/* <p>The current time is {currentTime}.</p> */}
         {/* <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button> */}
         <h1>Commute Compositions</h1>
 
@@ -178,10 +206,15 @@ function App() {
             <p>Logged In!</p>
             {/* <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button> */}
             {/* <button className="large-button" onClick={makePlaylist && fetchPlaylists}>Make Playlists</button> */}
-            <button className="large-button" onClick={() => {
-              makePlaylist();
-              fetchPlaylists();
-            }}>Make Playlists</button>
+            <button
+              className="large-button"
+              onClick={() => {
+                makePlaylist();
+                fetchPlaylists();
+              }}
+            >
+              Make Playlists
+            </button>
             {madePlaylist ? (
               <ul>
                 {playlists.map((playlist) => (
@@ -193,8 +226,31 @@ function App() {
             )}
           </div>
         ) : (
+          <div>
+            <div>
+              {gMapsApiKey && (
+                <GooglePlacesAutocomplete
+                  onSelect={handleDestSelect}
+                  apiKey={gMapsApiKey}
+                  autocompletionRequest={{
+                    types: ["address"],
+                  }}
+                  placeholder="Search for an address"
+                />
+              )}
+              {destination && (
+                <div>
+                  <h2>Destiantion:</h2>
+                  <p>{destination}</p>
+                  {/* <p>{destination.description}</p> */}
+                </div>
+              )}
+            </div>
+            <button className="large-button" onClick={getRoute}>
+              Log In
+            </button>
+          </div>
           // <button className="large-button" onClick={fetchAuthUrl}>Log In</button>
-          <button className="large-button" onClick={getRoute}>Log In</button>
         )}
 
         {/* Display the playlists */}

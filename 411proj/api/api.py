@@ -290,6 +290,11 @@ def get_distance_matrix():
     print(response.json())
     return jsonify(response.json())
 
+# just to get the google maps api key for frontend
+@app.route('/api/google-maps-api-key')
+def get_google_maps_api_key():
+    api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+    return jsonify({'api_key': api_key})
 
 
 
