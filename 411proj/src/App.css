@@ -57,3 +57,26 @@
 h1 {
   font-size: 90px;
 }
+
+
+/* Define styles for the Google Places Autocomplete dropdown */
+.google-places-autocomplete {
+  /* Add styles to the autocomplete container */
+  color: aliceblue
+}
+
+.google-places-autocomplete input {
+  /* Add styles to the input field */
+  color: blue;
+  /* Change the text color to blue */
+}
+
+.google-places-autocomplete .suggestion-item {
+  /* Add styles to each suggestion item in the dropdown */
+  background-color: black
+}
+
+.google-places-autocomplete .suggestion-item:hover {
+  /* Add styles to the suggestion item when hovered */
+  color: brown
+}

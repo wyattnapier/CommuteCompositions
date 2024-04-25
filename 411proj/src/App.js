@@ -233,9 +233,10 @@ function App() {
                   onSelect={handleDestSelect}
                   apiKey={gMapsApiKey}
                   autocompletionRequest={{
-                    types: ["address"],
+                    types: ["geocode"],
                   }}
                   placeholder="Search for an address"
+                  className="google-places-autocomplete"
                 />
               )}
               {destination && (
