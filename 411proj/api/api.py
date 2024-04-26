@@ -138,17 +138,6 @@ def create_spotify_oauth():
     scope='user-library-read playlist-modify-public playlist-modify-private'
     )
 
-# def delete_cache_file(cache_file_path):
-#     try:
-#         # Check if the file exists
-#         if os.path.exists(cache_file_path):
-#             # Delete the cache file
-#             os.remove(cache_file_path)
-#             print(f"Cache file '{cache_file_path}' deleted successfully.")
-#         else:
-#             print(f"Cache file '{cache_file_path}' does not exist.")
-#     except Exception as e:
-#         print(f"Error deleting cache file '{cache_file_path}': {e}")
 
 # @app.route('/logout')
 # def logout_func():
@@ -160,12 +149,6 @@ def create_spotify_oauth():
 #   # Redirect the user to the Spotify OAuth authorization URL
 #   return redirect(auth_url)
 #   # return "LOGGED OUT"
-
-# ### sample example from the original setup video
-# @app.route('/time')
-# def get_current_time():
-#   return {'time': time.time()}
-
 
 #called from the front end to get login status  
 @app.route('/ret')
