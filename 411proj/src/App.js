@@ -10,10 +10,12 @@ function App() {
   const [authUrl, setAuthUrl] = useState("");
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [madePlaylist, setMade] = useState(false);
-  const [destination, setDestination] = useState("");
-  const [source, setSource] = useState("");
+  const [destination, setDestination] = useState(null);
+  const [origin, setOrigin] = useState(null);
   const [gMapsApiKey, setGMapsApiKey] = useState("");
+  const [duration, setDuration] = useState(0);
   // let gMapsApiKey = "";
+
 
   useEffect(() => {
     fetch("/time")
@@ -173,9 +175,13 @@ function App() {
 
   const getRoute = async () => {
     try {
-      const response = await fetch("/getDistInfo");
+      const response = await fetch(`/getDistInfo?origin=${origin}&destination=${destination}`);
       if (response.ok) {
         const routeData = await response.json();
+        console.log(routeData)
+        setDuration(routeData.duration);
+        console.log(routeData.duration)
+        console.log("set duration:", duration);
       } else {
         console.error("Failed to get route:", response.statusText);
       }
@@ -184,16 +190,13 @@ function App() {
     }
   };
 
-  const handleDestSelect = (place) => {
-    setDestination(place);
-  };
 
   return (
     <div className="App">
       <header className="App-header">
         {/* <p>The current time is {currentTime}.</p> */}
         {/* <button onClick={handleSaveDiscoverWeekly}>Save Discover Weekly</button> */}
-        <h1>Commute Compositions</h1>
+        {/* <h1>Commute Compositions</h1> */}
 
         {/* Conditional rendering of the button */}
         {/* {!authUrl && (
@@ -204,9 +207,97 @@ function App() {
         {isLoggedIn ? (
           <div>
             <p>Logged In!</p>
+
+            <div>
+              <p>Origin:</p>
+              {gMapsApiKey && (
+                <GooglePlacesAutocomplete
+                  apiKey={gMapsApiKey}
+                  autocompletionRequest={{
+                    types: ["geocode"],
+                  }}
+                  placeholder="Search for an address"
+                  className="google-places-autocomplete"
+                  selectProps={{
+                    origin,
+                    onChange: (selected) => setOrigin(selected.value.place_id),
+                    styles: {
+                      input: (provided) => ({
+                        ...provided,
+                        color: 'black',
+                      }),
+                      option: (provided) => ({
+                        ...provided,
+                        color: 'black',
+                      }),
+                      singleValue: (provided) => ({
+                        ...provided,
+                        color: 'blue',
+                      }),
+                    },
+                  }}
+                />
+              )}
+              {origin && (
+                <div>
+                  <h2>Origin:</h2>
+                  <p>{origin}</p>
+                  {/* <p>{destination.description}</p> */}
+                </div>
+              )}
+
+
+
+              <p>Destination:</p>
+              {gMapsApiKey && (
+                <GooglePlacesAutocomplete
+                  apiKey={gMapsApiKey}
+                  autocompletionRequest={{
+                    types: ["geocode"],
+                  }}
+                  placeholder="Search for an address"
+                  className="google-places-autocomplete"
+                  selectProps={{
+                    destination,
+                    onChange: (selected) => setDestination(selected.value.place_id),
+                    styles: {
+                      input: (provided) => ({
+                        ...provided,
+                        color: 'black',
+                      }),
+                      option: (provided) => ({
+                        ...provided,
+                        color: 'black',
+                      }),
+                      singleValue: (provided) => ({
+                        ...provided,
+                        color: 'blue',
+                      }),
+                    },
+                  }}
+                />
+              )}
+              {destination && (
+                <div>
+                  <h2>Destination:</h2>
+                  <p>{destination}</p>
+                  {/* <p>{destination.description}</p> */}
+                </div>
+              )}
+
+            </div>
+
+            <button className="large-button" onClick={getRoute}>Get Distance</button>
+            {duration && (
+              <div>
+                <h2>Duration:</h2>
+                <p>{duration}</p>
+              </div>
+            )}
+
             {/* <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button> */}
             {/* <button className="large-button" onClick={makePlaylist && fetchPlaylists}>Make Playlists</button> */}
-            <button
+            {/* <button
               className="large-button"
               onClick={() => {
                 makePlaylist();
@@ -223,31 +314,12 @@ function App() {
               </ul>
             ) : (
               <></>
-            )}
+            )}*/}
           </div>
         ) : (
           <div>
-            <div>
-              {gMapsApiKey && (
-                <GooglePlacesAutocomplete
-                  onSelect={handleDestSelect}
-                  apiKey={gMapsApiKey}
-                  autocompletionRequest={{
-                    types: ["geocode"],
-                  }}
-                  placeholder="Search for an address"
-                  className="google-places-autocomplete"
-                />
-              )}
-              {destination && (
-                <div>
-                  <h2>Destiantion:</h2>
-                  <p>{destination}</p>
-                  {/* <p>{destination.description}</p> */}
-                </div>
-              )}
-            </div>
-            <button className="large-button" onClick={getRoute}>
+            <h1>Commute Compositions</h1>
+            <button className="large-button" onClick={fetchAuthUrl}>
               Log In
             </button>
           </div>

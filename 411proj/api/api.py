@@ -277,18 +277,27 @@ def get_random_tracks(sp, num_tracks=3):
 def get_distance_matrix():
     print("google maps stuff")
     # data = request.get_json()
-    print(1)
-    origins = request.args.get('origins')
-    destinations = request.args.get('destinations')
-    # api_key = 'YOUR_API_KEY'
-    # url = f'https://maps.googleapis.com/maps/api/distancematrix/json?origins={origins}&destinations={destinations}&key={api_key}'
-    print(2)
-    url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=San%20Francisco%7CVictoria%20BC&language=fr-FR&mode=bicycling&origins=Vancouver%20BC%7CSeattle&key={GOOGLE_MAPS_KEY}'
-    print(3)
+    origin = request.args.get('origin')
+    destination = request.args.get('destination')
+    print("origin", origin)
+    print("dest", destination)
+    url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=place_id:{destination}&language=en-EN&mode=bicycling&origins=place_id:{origin}&key={GOOGLE_MAPS_KEY}'
     response = requests.get(url)
-    print(4)
     print(response.json())
-    return jsonify(response.json())
+
+    rows = response.json().get('rows', [])
+    if rows:
+        first_row = rows[0]
+        elements = first_row.get('elements', [])
+        if elements:
+            first_element = elements[0]
+            duration = first_element.get('duration', {})
+            duration_value = duration.get('value')
+
+            # Print or use the extracted distance value
+            print('Duration Value:', duration_value)  # Output the distance value (682)
+
+    return jsonify({'duration': duration_value })
 
 # just to get the google maps api key for frontend
 @app.route('/api/google-maps-api-key')
