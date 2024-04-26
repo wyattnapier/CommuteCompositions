@@ -18,6 +18,7 @@ source venv/bin/activate
 pip install flask
 pip install spotipy
 pip install flask-dotenv
+yarn add react-google-places-autocomplete
 ```
 #### Finally, to run the code open another terminal, let's call in Terminal B, and there, from the 411proj directory, run
 ```
