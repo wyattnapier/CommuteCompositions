@@ -13,7 +13,7 @@ function App() {
   const [destination, setDestination] = useState(null);
   const [origin, setOrigin] = useState(null);
   const [gMapsApiKey, setGMapsApiKey] = useState("");
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(null);
   // let gMapsApiKey = "";
 
 
@@ -147,7 +147,7 @@ function App() {
 
   const makePlaylist = async () => {
     try {
-      const response = await fetch("/createPlaylist");
+      const response = await fetch(`/createPlaylist?length=${duration}`);
       if (response.ok) {
         const playlistData = await response.json();
         // setMade(playlistData);
@@ -239,11 +239,7 @@ function App() {
                 />
               )}
               {origin && (
-                <div>
-                  <h2>Origin:</h2>
-                  <p>{origin}</p>
-                  {/* <p>{destination.description}</p> */}
-                </div>
+                <p>Origin: {origin}</p>
               )}
 
 
@@ -278,26 +274,19 @@ function App() {
                 />
               )}
               {destination && (
-                <div>
-                  <h2>Destination:</h2>
-                  <p>{destination}</p>
-                  {/* <p>{destination.description}</p> */}
-                </div>
+                <p>Destination: {destination}</p>
               )}
 
             </div>
 
-            <button className="large-button" onClick={getRoute}>Get Distance</button>
+            <button onClick={getRoute}>Get Distance</button>
             {duration && (
-              <div>
-                <h2>Duration:</h2>
-                <p>{duration}</p>
-              </div>
+              <p>Duration: {duration}</p>
             )}
 
             {/* <button className="large-button" onClick={fetchPlaylists}>Fetch Playlists</button> */}
             {/* <button className="large-button" onClick={makePlaylist && fetchPlaylists}>Make Playlists</button> */}
-            {/* <button
+            <button
               className="large-button"
               onClick={() => {
                 makePlaylist();
@@ -306,6 +295,7 @@ function App() {
             >
               Make Playlists
             </button>
+
             {madePlaylist ? (
               <ul>
                 {playlists.map((playlist) => (
@@ -314,7 +304,7 @@ function App() {
               </ul>
             ) : (
               <></>
-            )}*/}
+            )}
           </div>
         ) : (
           <div>

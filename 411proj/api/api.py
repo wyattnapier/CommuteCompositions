@@ -242,7 +242,9 @@ def create_playlist():
 
     playlist_id = new_playlist['id']
 
-    random_tracks = get_random_tracks(sp)
+    length = int(request.args.get('length'))
+    print("length", length)
+    random_tracks = get_random_tracks(sp, length)
 
     sp.user_playlist_add_tracks(user_id, playlist_id, random_tracks)
 
@@ -253,7 +255,7 @@ def create_playlist():
     print(f"Error fetching playlists: {e}", file=sys.stderr)
     return jsonify({"error": f"Error fetching playlists: {e}"}), 500
   
-def get_random_tracks(sp, num_tracks=3):
+def get_random_tracks(sp, length):
   search_terms = ["pop", "rock", "indie"]
   #  random_term = random.choice(search_terms)
   cumulative_time=0
@@ -265,10 +267,9 @@ def get_random_tracks(sp, num_tracks=3):
   track_uris = []
   for track in search_result['tracks']['items']:
     cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
-    global COMMUTE_TIME
-    if cumulative_time > COMMUTE_TIME:
-       break
     track_uris.append(track['uri'])
+    if cumulative_time > length*1000:
+       break
   print(3)
   print("tracks", track_uris)
   return track_uris
