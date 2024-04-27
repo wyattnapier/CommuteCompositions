@@ -12,6 +12,7 @@ function App() {
   const [origin, setOrigin] = useState(null);
   const [gMapsApiKey, setGMapsApiKey] = useState("");
   const [duration, setDuration] = useState(null);
+  const [transportation, setTransportation] = useState("driving");
 
   useEffect(() => {
     fetchLoggedIn();
@@ -32,7 +33,6 @@ function App() {
       const data = await response.json();
       const newUrl = data.url;
       window.location = newUrl;
-
     } catch (error) {
       console.error("Redirecting Error", error);
     }
@@ -91,14 +91,14 @@ function App() {
     }
   };
 
-  // Function to call the backend to make the playlists 
+  // Function to call the backend to make the playlists
   const makePlaylist = async () => {
     try {
       const response = await fetch(`/createPlaylist?length=${duration}`);
       if (response.ok) {
         const playlistData = await response.json();
         //TODO: currently just setting to true, but if there is useful info
-        //from the playlist then we should somehow incorporate that here 
+        //from the playlist then we should somehow incorporate that here
         setMade(true);
       } else {
         console.error("Failed to fetch playlists:", response.statusText);
@@ -111,7 +111,9 @@ function App() {
   //gets the route duration from the backend calculation
   const getRoute = async () => {
     try {
-      const response = await fetch(`/getDistInfo?origin=${origin}&destination=${destination}`);
+      const response = await fetch(
+        `/getDistInfo?origin=${origin}&destination=${destination}`
+      );
       if (response.ok) {
         const routeData = await response.json();
         setDuration(routeData.duration);
@@ -122,7 +124,6 @@ function App() {
       console.error("error fetching playlists:", error);
     }
   };
-
 
   return (
     <div className="App">
@@ -147,24 +148,21 @@ function App() {
                     styles: {
                       input: (provided) => ({
                         ...provided,
-                        color: 'black',
+                        color: "black",
                       }),
                       option: (provided) => ({
                         ...provided,
-                        color: 'black',
+                        color: "black",
                       }),
                       singleValue: (provided) => ({
                         ...provided,
-                        color: 'blue',
+                        color: "blue",
                       }),
                     },
                   }}
                 />
               )}
-              {origin && (
-                <p>Origin: {origin}</p>
-              )}
-
+              {origin && <p>Origin: {origin}</p>}
 
               {/* the place autocomplete functionality for the destination */}
               <p>Destination:</p>
@@ -178,36 +176,48 @@ function App() {
                   className="google-places-autocomplete"
                   selectProps={{
                     destination,
-                    onChange: (selected) => setDestination(selected.value.place_id),
+                    onChange: (selected) =>
+                      setDestination(selected.value.place_id),
                     styles: {
                       input: (provided) => ({
                         ...provided,
-                        color: 'black',
+                        color: "black",
                       }),
                       option: (provided) => ({
                         ...provided,
-                        color: 'black',
+                        color: "black",
                       }),
                       singleValue: (provided) => ({
                         ...provided,
-                        color: 'blue',
+                        color: "blue",
                       }),
                     },
                   }}
                 />
               )}
-              {destination && (
-                <p>Destination: {destination}</p>
-              )}
+              {/* Transportation form */}
+              <form>
+                <label>
+                  Select your preferred transportation:
+                  <select
+                    value={transportation}
+                    onChange={(e) => setTransportation(e.target.value)}
+                  >
+                    <option value="driving">Driving</option>
+                    <option value="walking">Walking</option>
+                    <option value="bicycling">Bicycling</option>
+                    <option value="transit">Transit</option>
+                  </select>
+                </label>
+              </form>
+              {destination && <p>Destination: {destination}</p>}
             </div>
 
             {/* TODO: currently needs to be called to get the distance, how should we 
                   make this into one single button */}
-            {/* cals the getRoute funcion which gets the distance of the objects */}
+            {/* calls the getRoute funcion which gets the distance of the objects */}
             <button onClick={getRoute}>Get Distance</button>
-            {duration && (
-              <p>Duration: {duration}</p>
-            )}
+            {duration && <p>Duration: {duration}</p>}
 
             {/* TODO: again, should be able to make this and getRoute together*/}
             <button
@@ -240,7 +250,6 @@ function App() {
             </button>
           </div>
         )}
-
       </header>
     </div>
   );
