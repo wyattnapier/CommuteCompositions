@@ -112,7 +112,8 @@ function App() {
   const getRoute = async () => {
     try {
       const response = await fetch(
-        `/getDistInfo?origin=${origin}&destination=${destination}`
+        // `/getDistInfo?origin=${origin}&destination=${destination}`
+        `/getDistInfo?origin=${origin}&destination=${destination}&transportation=${transportation}`
       );
       if (response.ok) {
         const routeData = await response.json();
@@ -198,7 +199,7 @@ function App() {
               {/* Transportation form */}
               <form>
                 <label>
-                  Select your preferred transportation:
+                  Select your preferred transportation: <br />
                   <select
                     value={transportation}
                     onChange={(e) => setTransportation(e.target.value)}
@@ -230,7 +231,10 @@ function App() {
               Make Playlists
             </button>
 
-            {/* TODO: we can display something after the playlist has been made, but idk what */}
+            {/* 
+              TODO: we can display something after the playlist has been made, but idk what 
+              currently shows state of playlists right before adding the new playlist we just made :0
+            */}
             {madePlaylist ? (
               <ul>
                 {playlists.map((playlist) => (

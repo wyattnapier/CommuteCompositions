@@ -220,7 +220,9 @@ def get_random_tracks(sp, length):
 def get_distance_matrix():
     origin = request.args.get('origin')
     destination = request.args.get('destination')
-    url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=place_id:{destination}&language=en-EN&mode=bicycling&origins=place_id:{origin}&key={GOOGLE_MAPS_KEY}'
+    transportation = request.args.get('transportation')
+    url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=place_id:{destination}&language=en-EN&mode={transportation}&origins=place_id:{origin}&key={GOOGLE_MAPS_KEY}'
+    # url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=place_id:{destination}&language=en-EN&mode=bicycling&origins=place_id:{origin}&key={GOOGLE_MAPS_KEY}'
     response = requests.get(url)
 
     rows = response.json().get('rows', [])
