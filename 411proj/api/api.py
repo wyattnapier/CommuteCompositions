@@ -283,19 +283,32 @@ def create_playlist():
 #randomly chooses the tracks for the playlist
 #TODO: need to make this more randomized (how???) and implement the database into it
 def get_random_tracks(sp, length):
-  search_terms = ["pop", "rock", "indie"]
-  #  random_term = random.choice(search_terms)
-  random_term = "pop"
-  search_result = sp.search(q="pop", type="track")
-
+  random_string = "abcdefghijklmnopqrstuvwxyz*"
   cumulative_time=0
   track_uris = []
-  for track in search_result['tracks']['items']:
+  while cumulative_time < length*1000: #need to check the units of duration that is passed in to make sure we properly convert to ms
+    random_index = random.randint(0, len(random_string))
+    random_offset = random.randint(0, 50)
+    query = random_string[random_index]
+    if query == "*":
+       # TODO: this is when we want to grab from our database
+       query = "never gonna give you up" #filler for grabbing randomly from database
+      
+    search_result = sp.search(q=query, type="track", offset=random_offset)
+    i = 0
+    while True:
+      track = search_result['tracks']['items'][i] # not sure if this indexing works
+      if track['uri'] not in track_uris:
+        track_uris.append(track['uri'])
+        break
+      i += 1   
     cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
-    track_uris.append(track['uri'])
-    if cumulative_time > length*1000:
-       break
-
+     
+  # for track in search_result['tracks']['items']:
+  #   cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
+  #   track_uris.append(track['uri'])
+  #   if cumulative_time > length*1000:
+  #      break
   return track_uris
 
 #returns the distance between two locations that are passed in from request 
