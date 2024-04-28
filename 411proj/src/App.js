@@ -9,6 +9,7 @@ function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [madePlaylist, setMade] = useState(false);
   const [destination, setDestination] = useState(null);
+  const [destState, setDestState] = useState(null);
   const [origin, setOrigin] = useState(null);
   const [gMapsApiKey, setGMapsApiKey] = useState("");
   const [duration, setDuration] = useState(null);
@@ -126,6 +127,33 @@ function App() {
     }
   };
 
+  // database routes
+  // const addTrackDB = async () => {
+  //   try {
+  //     const response = await fetch("/create", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ trackID, state }), // need to get inputTrackID here
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to add track: ${response.statusText}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Why did it his this one and not the earlier one?:", error);
+  //   }
+  // };
+
+  // const handleDestChange = (selected) => {
+  //   setDestination(selected.value.place_id);
+  //   let s = selected.value.description;
+  //   let i = s.seaerch("USA")
+  //   let stateStart = i - 4
+  //   setDestState(s.substring(stateStart, stateStart+2));
+  // }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -177,8 +205,13 @@ function App() {
                   className="google-places-autocomplete"
                   selectProps={{
                     destination,
-                    onChange: (selected) =>
-                      setDestination(selected.value.place_id),
+                    onChange: (selected) => {
+                      setDestination(selected.value.place_id);
+                      let s = selected.value.description;
+                      let i = s.search("USA");
+                      let stateStart = i - 4;
+                      setDestState(s.substring(stateStart, stateStart + 2));
+                    },
                     styles: {
                       input: (provided) => ({
                         ...provided,
@@ -211,13 +244,18 @@ function App() {
                   </select>
                 </label>
               </form>
-              {destination && <p>Destination: {destination}</p>}
+              {destination && (
+                <p>
+                  Destination: {destination} AND in state: {destState}
+                </p>
+              )}
             </div>
 
             {/* TODO: currently needs to be called to get the distance, how should we 
                   make this into one single button */}
             {/* calls the getRoute funcion which gets the distance of the objects */}
             <button onClick={getRoute}>Get Distance</button>
+            <br />
             {duration && <p>Duration: {duration}</p>}
 
             {/* TODO: again, should be able to make this and getRoute together*/}
