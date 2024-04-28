@@ -86,8 +86,21 @@ def read_documents():
         doc['_id'] = str(doc['_id'])
     # Serialize documents to JSON
     serialized_documents = json_util.dumps(documents)
+    print("we got here?")
     return serialized_documents
 
+@app.route('/readstate', methods=['GET'])
+def read_state_document():
+    selectedState = request.args.get('selectedState')
+    
+    document = collection.find_one({'selectedState': selectedState})
+    
+    if document:
+        # Convert ObjectId to string
+        document['_id'] = str(document['_id'])
+        return jsonify(document)
+    else:
+        return jsonify({'message': 'Document not found'}), 404
 # TODO: all of this shit
 # route or method to get all of the tracks for a song
 # then we can use that result to grab one at random and serarch for it with spotify so we get the track id
@@ -175,6 +188,7 @@ def get_user_playlists():
         
         # Fetch user playlists using the Spotipy client
         playlists = sp.current_user_playlists()
+        # print("Playlists:", playlists)
 
         # Convert playlists to a list of dictionaries (id and name)
         playlists_data = [{"id": playlist['id'], "name": playlist['name']} for playlist in playlists['items']]
@@ -192,7 +206,7 @@ def get_user_playlists():
         return response
     except Exception as e:
         # Handle exceptions and log errors
-        print(f"Error fetching playlists: {e}", file=sys.stderr)
+        print(f"Error fetching playlists in /playlists route: {e}", file=sys.stderr)
         return jsonify({"error": f"Error fetching playlists: {e}"}), 500
 
 
@@ -259,7 +273,7 @@ def create_playlist():
     #create new playlist 
     new_playlist = sp.user_playlist_create(
        user=user_id,
-       name="Playlist!",
+       name="Commute Playlist!",
        public=True,
        collaborative=False,
        description="Made with LOVE (and like our 411 project)"
@@ -269,7 +283,8 @@ def create_playlist():
 
     #get the length that was passed in through the request
     length = int(request.args.get('length'))
-    random_tracks = get_random_tracks(sp, length)
+    selectedState = request.args.get('selectedState')
+    random_tracks = get_random_tracks(sp, length, selectedState)
 
     sp.user_playlist_add_tracks(user_id, playlist_id, random_tracks)
 
@@ -282,16 +297,25 @@ def create_playlist():
   
 #randomly chooses the tracks for the playlist
 #TODO: need to make this more randomized (how???) and implement the database into it
-def get_random_tracks(sp, length):
+def get_random_tracks(sp, length, selectedState):
   random_string = "abcdefghijklmnopqrstuvwxyz*"
   cumulative_time=0
   track_uris = []
   while cumulative_time < length*1000: #need to check the units of duration that is passed in to make sure we properly convert to ms
-    random_index = random.randint(0, len(random_string))
+    random_index = random.randint(0, len(random_string) - 1)
     random_offset = random.randint(0, 50)
     query = random_string[random_index]
+    print("random string query: ", query)
     if query == "*":
        # TODO: this is when we want to grab from our database
+      # response = requests.get(f'http://localhost:5000/readstate?selectedState={selectedState}')
+      # options = response.json()
+      # print(options)
+      # # if not options:
+      # #   return jsonify({"error": f"Error fetching tracks from db when making playlist"}), 500
+      # random_db_index = random.randint(0,len(options)-1)
+      # query = options[random_db_index]
+      # print("query from db: ", query)
        query = "never gonna give you up" #filler for grabbing randomly from database
       
     search_result = sp.search(q=query, type="track", offset=random_offset)

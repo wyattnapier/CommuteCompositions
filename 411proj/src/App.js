@@ -98,7 +98,9 @@ function App() {
   // Function to call the backend to make the playlists
   const makePlaylist = async () => {
     try {
-      const response = await fetch(`/createPlaylist?length=${duration}`);
+      const response = await fetch(
+        `/createPlaylist?length=${duration}&selectedState=${destState}`
+      );
       if (response.ok) {
         const playlistData = await response.json();
         //TODO: currently just setting to true, but if there is useful info
@@ -116,7 +118,6 @@ function App() {
   const getRoute = async () => {
     try {
       const response = await fetch(
-        // `/getDistInfo?origin=${origin}&destination=${destination}`
         `/getDistInfo?origin=${origin}&destination=${destination}&transportation=${transportation}`
       );
       if (response.ok) {
@@ -177,9 +178,12 @@ function App() {
         }
       } else if (CRUDoperation === "DELETE") {
         console.log("Deleting from the playlist by calling the delete route");
-        const response = await fetch(`/delete?trackName=${CRUDtrackName}&stateID=${CRUDstate}`, {
-          method: "DELETE",
-        });
+        const response = await fetch(
+          `/delete?trackName=${CRUDtrackName}&stateID=${CRUDstate}`,
+          {
+            method: "DELETE",
+          }
+        );
         if (response.ok) {
           const data = await response.json();
           console.log("Document deleted successfully:", data);
