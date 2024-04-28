@@ -63,9 +63,19 @@ def create_document():
     if trackName is None or selectedState is None:
         return jsonify({'error': 'Missing trackName or selectedState in request data'}), 400
 
-    # Insert the data into the collection
-    result = collection.insert_one(data)
-    return jsonify({'message': 'Document created successfully', 'id': str(result.inserted_id)})
+    # Find the existing document for the state
+    existing_document = collection.find_one({'selectedState': selectedState})
+
+    if existing_document:
+        # Update the existing document
+        print("updating current document!")
+        collection.update_one({'selectedState': selectedState}, {'$set': data})
+        return jsonify({'message': 'Document updated successfully'})
+    else:
+        # Create a new document for the state
+        print("making a new document oof")
+        result = collection.insert_one(data)
+        return jsonify({'message': 'Document created successfully', 'id': str(result.inserted_id)})
 
 # Route to read all documents
 @app.route('/read', methods=['GET'])
@@ -77,6 +87,13 @@ def read_documents():
     # Serialize documents to JSON
     serialized_documents = json_util.dumps(documents)
     return serialized_documents
+
+# TODO: all of this shit
+# route or method to get all of the tracks for a song
+# then we can use that result to grab one at random and serarch for it with spotify so we get the track id
+# this will all be within the getTrackIDs function so we can randomly generate a playlist
+# use a string like "qwertyuiopasdfghjklzxcvbnm*" to get the query to randomize it more and have a random offset
+# if * then we use one of our generated songs from database
 
 # Route to read a specific document based on selectedState and trackID
 @app.route('/read', methods=['GET'])
