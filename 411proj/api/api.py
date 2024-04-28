@@ -7,7 +7,9 @@ import sys
 from dotenv import load_dotenv
 from flask_cors import CORS, cross_origin
 from flask_session import Session
+from pymongo import MongoClient
 import requests
+from bson import json_util
 
 from random import randint, random
 
@@ -41,6 +43,70 @@ GOOGLE_MAPS_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
 
 #global variable for the logged in status
 logged_in = False
+
+### setting up the database
+# Set up MongoDB connection
+client = MongoClient('localhost', 27017)  # Connect to MongoDB -- may need different port number?
+db = client['commuting']              # Replace 'your_database' with your actual database name
+collection = db['tracks']        # Replace 'your_collection' with your actual collection name
+
+# Route to create a new document
+@app.route('/create', methods=['POST'])
+def create_document():
+    print("made it to create")
+    data = request.json  # Assuming data is sent in JSON format
+    trackName = data.get('trackName')
+    selectedState = data.get('selectedState')
+    print(trackName, selectedState)
+
+    # Check if both trackID and selectedState are present
+    if trackName is None or selectedState is None:
+        return jsonify({'error': 'Missing trackName or selectedState in request data'}), 400
+
+    # Insert the data into the collection
+    result = collection.insert_one(data)
+    return jsonify({'message': 'Document created successfully', 'id': str(result.inserted_id)})
+
+# Route to read all documents
+@app.route('/read', methods=['GET'])
+def read_documents():
+    documents = list(collection.find({}))  # Retrieve all documents
+    # Convert ObjectId to string for each document
+    for doc in documents:
+        doc['_id'] = str(doc['_id'])
+    # Serialize documents to JSON
+    serialized_documents = json_util.dumps(documents)
+    return serialized_documents
+
+# Route to read a specific document based on selectedState and trackID
+@app.route('/read', methods=['GET'])
+def read_document():
+    selectedState = request.args.get('selectedState')
+    trackName = request.args.get('trackName')
+    
+    document = collection.find_one({'selectedState': selectedState, 'trackName': trackName})
+    
+    if document:
+        # Convert ObjectId to string
+        document['_id'] = str(document['_id'])
+        return jsonify(document)
+    else:
+        return jsonify({'message': 'Document not found'}), 404
+
+# Route to delete a document
+@app.route('/delete', methods=['DELETE'])
+def delete_document():
+    trackName = request.args.get('trackName')
+    stateID = request.args.get('stateID')
+
+    # Construct a query to find the document based on both trackName and stateID
+    query = {'trackName': trackName, 'stateID': stateID}
+
+    result = collection.delete_one(query)
+    if result.deleted_count > 0:
+        return jsonify({'message': 'Document deleted successfully'})
+    else:
+        return jsonify({'message': 'Document not found'}), 404
 
 #i dont think we are ever able to actually access this 
 @app.route('/')
