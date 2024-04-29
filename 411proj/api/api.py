@@ -52,6 +52,24 @@ client = MongoClient('localhost', 27017)
 db = client['commuting'] 
 collection = db['tracks'] 
 
+### filling in the database
+# Define the data to insert into the collection
+state_tracks_data = [
+    {"state": "VT", "tracks": ["stick season", "all is well"]},
+    {"state": "NY", "tracks": ["Empire State of Mind", "New York, New York"]},
+    {"state": "CA", "tracks": ["California Love", "Hotel California", "California Gurls", "Californication"]},
+    # Add more states and tracks as needed
+]
+
+# Insert the data into the collection
+for state_track in state_tracks_data:
+    state = state_track["state"]
+    tracks = state_track["tracks"]
+    collection.update_one({"_id": state}, {"$set": {"tracks": tracks}}, upsert=True)
+
+print("Database setup completed.")
+
+
 # Route to create a new document
 @app.route('/create', methods=['POST'])
 def create_document():
@@ -95,14 +113,14 @@ def read_documents():
 def read_state_document():
     selectedState = request.args.get('selectedState')
     
-    document = collection.find_one({'selectedState': selectedState})
+    document = collection.find_one({'_id': selectedState})
     
     if document:
-        # Convert ObjectId to string
-        document['_id'] = str(document['_id'])
-        return jsonify(document)
+        tracks = document.get('tracks', [])
+        return jsonify({'tracks': tracks})
     else:
         return jsonify({'message': 'Document not found'}), 404
+
 
 # Route to read a specific document based on selectedState and trackID
 @app.route('/read', methods=['GET'])
@@ -306,15 +324,15 @@ def get_random_tracks(sp, length, selectedState):
     query = random_string[random_index]
     if query == "*":
       # TODO: this is when we want to grab from our database
-      # print("hit the *")
+      print("hit the *")
       response = requests.get(f'http://localhost:5000/readstate?selectedState={selectedState}')
       options = response.json()
       print(options)
       # if not options:
       #   return jsonify({"error": f"Error fetching tracks from db when making playlist"}), 500
       random_db_index = (i+random_offset)%len(options)
-      # query = options[random_db_index] # we need them in an array to do this
-      query = options['trackName']
+      query = options['tracks'][random_db_index] # we need them in an array to do this
+      # query = options['trackName']
       print("query from db: ", query)
       random_offset = 0
       # query = "never gonna give you up" #filler for grabbing randomly from database
