@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import { Spotify } from "react-spotify-embed";
 
 function App() {
   const [playlists, setPlaylists] = useState([]);
@@ -17,6 +18,7 @@ function App() {
   const [CRUDoperation, setCRUDoperation] = useState("CREATE");
   const [CRUDtrackName, setCRUDtrackName] = useState("");
   const [CRUDstate, setCRUDstate] = useState("MA");
+  const [embeddingLink, setEmbeddingLink] = useState(null);
 
   useEffect(() => {
     fetchLoggedIn();
@@ -105,6 +107,11 @@ function App() {
         const playlistData = await response.json();
         //TODO: currently just setting to true, but if there is useful info
         //from the playlist then we should somehow incorporate that here
+        let playlist_external_url = playlistData["external_urls"]["spotify"];
+        console.log("external url:", playlist_external_url);
+        let playlist_uri = playlistData["uri"];
+        console.log("playlist_uri:", playlist_uri);
+        setEmbeddingLink(playlist_external_url);
         setMade(true);
       } else {
         console.error("Failed to fetch playlists:", response.statusText);
@@ -212,6 +219,17 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <div>
+          {embeddingLink && (
+            <Spotify
+              link={embeddingLink}
+              view="coverart" // Set the view to "coverart" to display only the cover art
+              width={700}
+              height={380}
+              theme="black" // Set the theme to "black" for a dark theme
+            />
+          )}
+        </div>
         <div className="DB-form">
           <form onSubmit={handleCRUDformsubmit}>
             <label>

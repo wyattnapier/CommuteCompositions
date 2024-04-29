@@ -292,6 +292,10 @@ def create_playlist():
     )
 
     playlist_id = new_playlist['id']
+    # playlist_external_url = new_playlist['external_urls']['spotify']
+    # print("external url:", playlist_external_url)
+    # playlist_uri = new_playlist['uri']
+    # print("playlist_uri:", playlist_uri)
 
     #get the length that was passed in through the request
     length = int(request.args.get('length'))
