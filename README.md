@@ -3,6 +3,7 @@
 #### To setup the code first open a new terminal and git clone the repositiory and then cd into the main folder:
 ``` 
 cd 411proj
+npm i react-spotify-embed
 ```
 #### Then, once you're in that file, you need to start up your virtual environment with the following sequence of commands:
 ```
