@@ -48,9 +48,9 @@ logged_in = False
 
 ### setting up the database
 # Set up MongoDB connection
-client = MongoClient('localhost', 27017)  # Connect to MongoDB -- may need different port number?
-db = client['commuting']              # Replace 'your_database' with your actual database name
-collection = db['tracks']        # Replace 'your_collection' with your actual collection name
+client = MongoClient('localhost', 27017)
+db = client['commuting'] 
+collection = db['tracks'] 
 
 # Route to create a new document
 @app.route('/create', methods=['POST'])
@@ -103,12 +103,6 @@ def read_state_document():
         return jsonify(document)
     else:
         return jsonify({'message': 'Document not found'}), 404
-# TODO: all of this shit
-# route or method to get all of the tracks for a song
-# then we can use that result to grab one at random and serarch for it with spotify so we get the track id
-# this will all be within the getTrackIDs function so we can randomly generate a playlist
-# use a string like "qwertyuiopasdfghjklzxcvbnm*" to get the query to randomize it more and have a random offset
-# if * then we use one of our generated songs from database
 
 # Route to read a specific document based on selectedState and trackID
 @app.route('/read', methods=['GET'])
@@ -184,44 +178,6 @@ def redirect_page():
 
   return redirect("http://localhost:3000/")
 
-### our version of the get_user_playlists
-# #returns the names of the user's playlists
-# @app.route('/playlists', methods=['GET'])
-# def get_user_playlists():
-#     try:
-#         # Retrieve the token information
-#         token_info = getToken()
-#         if not token_info:
-#             return jsonify({"error": "No token info found"}), 401
-        
-#         # Create a Spotipy client instance using the access token
-#         access_token = token_info['access_token']
-#         sp = spotipy.Spotify(auth=access_token)
-        
-#         # Fetch user playlists using the Spotipy client
-#         playlists = sp.current_user_playlists()
-#         # print("Playlists:", playlists)
-
-#         # Convert playlists to a list of dictionaries (id and name)
-#         playlists_data = [{"id": playlist['id'], "name": playlist['name']} for playlist in playlists['items']]
-
-#         # Return playlists data as a JSON response
-#         response = jsonify(playlists_data)
-#         if not response:
-#            return jsonify({"error": "No playlist data found"}), 401
-
-#         #I believe that this is from when we tried to work with sessions
-#         # response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-#         # response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-
-#         # Return the playlists data as JSON
-#         return response
-#     except Exception as e:
-#         # Handle exceptions and log errors
-#         print(f"Error fetching playlists in /playlists route: {e}", file=sys.stderr)
-#         return jsonify({"error": f"Error fetching playlists: {e}"}), 500
-
-### updaated version of get_user_playlists
 #returns the names of the user's playlists
 @app.route('/playlists', methods=['GET'])
 def get_user_playlists():
@@ -337,17 +293,13 @@ def create_playlist():
 #randomly chooses the tracks for the playlist
 #TODO: need to make this more randomized (how???) and implement the database into it
 def get_random_tracks(sp, length, selectedState):
-  # print("starting to get random tracks")
   random_string = "abcdefghijklmnopqrstuvwxyz*"
-  # random_string = "abcdefghijklmnopqrstuvwxyz*"
   cumulative_time=0
   track_uris = []
-  # print("line 334 of api.py", random_string)
   i = 0
   while cumulative_time < (length*1000): #need to check the units of duration that is passed in to make sure we properly convert to ms
-    # print("starting the for loop")
     # RANDOM DOES NOT WORK FOR SOME REASON
-    random_char_index_array = [4, 26, 19, 1, 21, 24, 15, 0, 26, 22, 17, 10, 14, 11, 12, 18, 2, 13, 3, 25, 8, 9, 16, 23, 7, 6, 5, 20]
+    random_char_index_array = [26, 19, 1, 21, 24, 15, 0, 4, 22, 17, 10, 14, 11, 12, 18, 2, 13, 3, 25, 8, 9, 16, 23, 7, 6, 5, 20]
     random_index = random_char_index_array[i%27]
     random_offset_array = [38, 40, 33, 20, 14, 25, 2, 12, 5, 44, 21, 50, 26, 36, 18, 43, 32, 23, 17, 49, 34, 22, 30, 27, 15, 47, 7, 3, 9, 48, 45, 10, 42, 31, 46, 29, 28, 24, 13, 37, 19, 41, 16, 35, 4, 39, 6, 1, 11, 8]
     random_offset = random_offset_array[i%50]
@@ -370,19 +322,11 @@ def get_random_tracks(sp, length, selectedState):
     search_result = sp.search(q=query, type="track", offset=random_offset)
     # i = 0
     for track in search_result['tracks']['items']:
-      # track = search_result['tracks']['items'][i]
       if track['uri'] not in track_uris:
         track_uris.append(track['uri'])
         cumulative_time += track['duration_ms']
         break
-    i += 1   
-    # cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
-     
-  # for track in search_result['tracks']['items']:
-  #   cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
-  #   track_uris.append(track['uri'])
-  #   if cumulative_time > length*1000:
-  #      break
+    i += 1
   return track_uris
 
 #returns the distance between two locations that are passed in from request 
@@ -392,7 +336,6 @@ def get_distance_matrix():
     destination = request.args.get('destination')
     transportation = request.args.get('transportation')
     url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=place_id:{destination}&language=en-EN&mode={transportation}&origins=place_id:{origin}&key={GOOGLE_MAPS_KEY}'
-    # url = f'https://maps.googleapis.com/maps/api/distancematrix/json?destinations=place_id:{destination}&language=en-EN&mode=bicycling&origins=place_id:{origin}&key={GOOGLE_MAPS_KEY}'
     response = requests.get(url)
 
     rows = response.json().get('rows', [])
