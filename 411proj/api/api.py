@@ -11,7 +11,9 @@ from pymongo import MongoClient
 import requests
 from bson import json_util
 
-from random import randint, random
+# from random import randint, random
+import math
+import random
 
 load_dotenv('.flaskenv')                                # Load environment variables from .flaskenv file
 
@@ -173,6 +175,44 @@ def redirect_page():
 
   return redirect("http://localhost:3000/")
 
+### our version of the get_user_playlists
+# #returns the names of the user's playlists
+# @app.route('/playlists', methods=['GET'])
+# def get_user_playlists():
+#     try:
+#         # Retrieve the token information
+#         token_info = getToken()
+#         if not token_info:
+#             return jsonify({"error": "No token info found"}), 401
+        
+#         # Create a Spotipy client instance using the access token
+#         access_token = token_info['access_token']
+#         sp = spotipy.Spotify(auth=access_token)
+        
+#         # Fetch user playlists using the Spotipy client
+#         playlists = sp.current_user_playlists()
+#         # print("Playlists:", playlists)
+
+#         # Convert playlists to a list of dictionaries (id and name)
+#         playlists_data = [{"id": playlist['id'], "name": playlist['name']} for playlist in playlists['items']]
+
+#         # Return playlists data as a JSON response
+#         response = jsonify(playlists_data)
+#         if not response:
+#            return jsonify({"error": "No playlist data found"}), 401
+
+#         #I believe that this is from when we tried to work with sessions
+#         # response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+#         # response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+
+#         # Return the playlists data as JSON
+#         return response
+#     except Exception as e:
+#         # Handle exceptions and log errors
+#         print(f"Error fetching playlists in /playlists route: {e}", file=sys.stderr)
+#         return jsonify({"error": f"Error fetching playlists: {e}"}), 500
+
+### updaated version of get_user_playlists
 #returns the names of the user's playlists
 @app.route('/playlists', methods=['GET'])
 def get_user_playlists():
@@ -188,22 +228,11 @@ def get_user_playlists():
         
         # Fetch user playlists using the Spotipy client
         playlists = sp.current_user_playlists()
-        # print("Playlists:", playlists)
-
-        # Convert playlists to a list of dictionaries (id and name)
+        # Extract the list of playlists from the paging object
         playlists_data = [{"id": playlist['id'], "name": playlist['name']} for playlist in playlists['items']]
 
         # Return playlists data as a JSON response
-        response = jsonify(playlists_data)
-        if not response:
-           return jsonify({"error": "No playlist data found"}), 401
-
-        #I believe that this is from when we tried to work with sessions
-        # response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-        # response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-
-        # Return the playlists data as JSON
-        return response
+        return jsonify(playlists_data)
     except Exception as e:
         # Handle exceptions and log errors
         print(f"Error fetching playlists in /playlists route: {e}", file=sys.stderr)
@@ -285,6 +314,7 @@ def create_playlist():
     length = int(request.args.get('length'))
     selectedState = request.args.get('selectedState')
     random_tracks = get_random_tracks(sp, length, selectedState)
+    print("random tracks:", random_tracks)
 
     sp.user_playlist_add_tracks(user_id, playlist_id, random_tracks)
 
@@ -298,35 +328,45 @@ def create_playlist():
 #randomly chooses the tracks for the playlist
 #TODO: need to make this more randomized (how???) and implement the database into it
 def get_random_tracks(sp, length, selectedState):
+  # print("starting to get random tracks")
   random_string = "abcdefghijklmnopqrstuvwxyz*"
+  # random_string = "abcdefghijklmnopqrstuvwxyz*"
   cumulative_time=0
   track_uris = []
-  while cumulative_time < length*1000: #need to check the units of duration that is passed in to make sure we properly convert to ms
-    random_index = random.randint(0, len(random_string) - 1)
-    random_offset = random.randint(0, 50)
+  # print("line 334 of api.py", random_string)
+  i = 0
+  while cumulative_time < (length*1000): #need to check the units of duration that is passed in to make sure we properly convert to ms
+    # print("starting the for loop")
+    # RANDOM DOES NOT WORK FOR SOME REASON
+    random_char_index_array = [4, 26, 19, 1, 21, 24, 15, 0, 26, 22, 17, 10, 14, 11, 12, 18, 2, 13, 3, 25, 8, 9, 16, 23, 7, 6, 5, 20]
+    random_index = random_char_index_array[i%27]
+    random_offset_array = [38, 40, 33, 20, 14, 25, 2, 12, 5, 44, 21, 50, 26, 36, 18, 43, 32, 23, 17, 49, 34, 22, 30, 27, 15, 47, 7, 3, 9, 48, 45, 10, 42, 31, 46, 29, 28, 24, 13, 37, 19, 41, 16, 35, 4, 39, 6, 1, 11, 8]
+    random_offset = random_offset_array[i%50]
     query = random_string[random_index]
-    print("random string query: ", query)
     if query == "*":
-       # TODO: this is when we want to grab from our database
-      # response = requests.get(f'http://localhost:5000/readstate?selectedState={selectedState}')
-      # options = response.json()
-      # print(options)
-      # # if not options:
-      # #   return jsonify({"error": f"Error fetching tracks from db when making playlist"}), 500
-      # random_db_index = random.randint(0,len(options)-1)
-      # query = options[random_db_index]
-      # print("query from db: ", query)
-       query = "never gonna give you up" #filler for grabbing randomly from database
+      # TODO: this is when we want to grab from our database
+      # print("hit the *")
+      response = requests.get(f'http://localhost:5000/readstate?selectedState={selectedState}')
+      options = response.json()
+      print(options)
+      # if not options:
+      #   return jsonify({"error": f"Error fetching tracks from db when making playlist"}), 500
+      random_db_index = (i+random_offset)%len(options)
+      # query = options[random_db_index] # we need them in an array to do this
+      query = options['trackName']
+      print("query from db: ", query)
+      # query = "never gonna give you up" #filler for grabbing randomly from database
       
     search_result = sp.search(q=query, type="track", offset=random_offset)
-    i = 0
-    while True:
-      track = search_result['tracks']['items'][i] # not sure if this indexing works
+    # i = 0
+    for track in search_result['tracks']['items']:
+      # track = search_result['tracks']['items'][i]
       if track['uri'] not in track_uris:
         track_uris.append(track['uri'])
+        cumulative_time += track['duration_ms']
         break
-      i += 1   
-    cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
+    i += 1   
+    # cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
      
   # for track in search_result['tracks']['items']:
   #   cumulative_time += track['duration_ms'] #cumulative time is recorded in milliseconds
