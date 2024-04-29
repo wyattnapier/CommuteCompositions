@@ -364,6 +364,7 @@ def get_random_tracks(sp, length, selectedState):
       # query = options[random_db_index] # we need them in an array to do this
       query = options['trackName']
       print("query from db: ", query)
+      random_offset = 0
       # query = "never gonna give you up" #filler for grabbing randomly from database
       
     search_result = sp.search(q=query, type="track", offset=random_offset)
