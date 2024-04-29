@@ -190,6 +190,19 @@ function App() {
         } else {
           console.error("Failed to delete document:", response.statusText);
         }
+      } else if (CRUDoperation === "DELETEALL") {
+        console.log(
+          "Deleting everything from the database by calling the deleteall route"
+        );
+        const response = await fetch(`/delete/all`, {
+          method: "DELETE",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Document deleted successfully:", data);
+        } else {
+          console.error("Failed to delete all documents:", response.statusText);
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -281,6 +294,7 @@ function App() {
                 <option value="READ">READ</option>
                 <option value="READALL">READALL</option>
                 <option value="DELETE">DELETE</option>
+                <option value="DELETEALL">DELETEALL</option>
                 {/* <option value="UPDATE">UPDATE</option> */}
               </select>
             </label>

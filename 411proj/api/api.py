@@ -140,6 +140,15 @@ def delete_document():
     else:
         return jsonify({'message': 'Document not found'}), 404
 
+# Route to delete all documents from the collection
+@app.route('/delete/all', methods=['DELETE'])
+def delete_all_documents():
+    result = collection.delete_many({})
+    deleted_count = result.deleted_count
+    return jsonify({'message': f'{deleted_count} documents deleted successfully'})
+
+
+
 #i dont think we are ever able to actually access this 
 @app.route('/')
 def base():
