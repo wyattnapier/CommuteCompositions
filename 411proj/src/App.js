@@ -230,98 +230,11 @@ function App() {
             />
           )}
         </div>
-        <div className="DB-form">
-          <form onSubmit={handleCRUDformsubmit}>
-            <label>
-              Track name:
-              <input
-                type="text"
-                value={CRUDtrackName}
-                onChange={(e) => setCRUDtrackName(e.target.value)}
-              />
-            </label>
-            <br />
-            <label>
-              Select the state by abbreviation:
-              <select
-                value={CRUDstate}
-                onChange={(e) => setCRUDstate(e.target.value)}
-              >
-                {/* <option value="">Select State</option> */}
-                <option value="AL">AL</option>
-                <option value="AK">AK</option>
-                <option value="AZ">AZ</option>
-                <option value="AR">AR</option>
-                <option value="CA">CA</option>
-                <option value="CO">CO</option>
-                <option value="CT">CT</option>
-                <option value="DE">DE</option>
-                <option value="DC">DC</option>
-                <option value="FL">FL</option>
-                <option value="GA">GA</option>
-                <option value="HI">HI</option>
-                <option value="ID">ID</option>
-                <option value="IL">IL</option>
-                <option value="IN">IN</option>
-                <option value="IA">IA</option>
-                <option value="KS">KS</option>
-                <option value="KY">KY</option>
-                <option value="LA">LA</option>
-                <option value="ME">ME</option>
-                <option value="MD">MD</option>
-                <option value="MA">MA</option>
-                <option value="MI">MI</option>
-                <option value="MN">MN</option>
-                <option value="MS">MS</option>
-                <option value="MO">MO</option>
-                <option value="MT">MT</option>
-                <option value="NE">NE</option>
-                <option value="NV">NV</option>
-                <option value="NH">NH</option>
-                <option value="NJ">NJ</option>
-                <option value="NM">NM</option>
-                <option value="NY">NY</option>
-                <option value="NC">NC</option>
-                <option value="ND">ND</option>
-                <option value="OH">OH</option>
-                <option value="OK">OK</option>
-                <option value="OR">OR</option>
-                <option value="PA">PA</option>
-                <option value="RI">RI</option>
-                <option value="SC">SC</option>
-                <option value="SD">SD</option>
-                <option value="TN">TN</option>
-                <option value="TX">TX</option>
-                <option value="UT">UT</option>
-                <option value="VT">VT</option>
-                <option value="VA">VA</option>
-                <option value="WA">WA</option>
-                <option value="WV">WV</option>
-                <option value="WI">WI</option>
-                <option value="WY">WY</option>
-              </select>
-            </label>
-            <br />
-            <label>
-              Select the CRUD operation you want to do: <br />
-              <select
-                value={CRUDoperation}
-                onChange={(e) => setCRUDoperation(e.target.value)}
-              >
-                <option value="CREATE">CREATE</option>
-                <option value="READ">READ</option>
-                <option value="READALL">READALL</option>
-                <option value="DELETE">DELETE</option>
-                <option value="DELETEALL">DELETEALL</option>
-                {/* <option value="UPDATE">UPDATE</option> */}
-              </select>
-            </label>
-            <button type="submit">Submit</button>
-          </form>
-        </div>
+
         {isLoggedIn ? (
+          // if the user has logged into spotify, we can render the distance functionalities
           <div>
-            <p>Logged In!</p>
+            <h2>Tell us about your commute!</h2>
             <div>
               {/* the place autocomplete functionality for origin */}
               <p>Origin:</p>
@@ -353,7 +266,7 @@ function App() {
                   }}
                 />
               )}
-              {origin && <p>Origin: {origin}</p>}
+              {/* {origin && <p>Origin: {origin}</p>} */}
 
               {/* the place autocomplete functionality for the destination */}
               <p>Destination:</p>
@@ -393,9 +306,10 @@ function App() {
               )}
               {/* Transportation form */}
               <form>
+                {/* <p>Select your preferred transportations:</p> */}
                 <label>
                   Select your preferred transportation: <br />
-                  <select
+                  <select className='select-container'
                     value={transportation}
                     onChange={(e) => setTransportation(e.target.value)}
                   >
@@ -406,30 +320,39 @@ function App() {
                   </select>
                 </label>
               </form>
-              {destination && (
+              {/* {destination && (
                 <p>
                   Destination: {destination} AND in state: {destState}
                 </p>
-              )}
+              )} */}
             </div>
 
             {/* TODO: currently needs to be called to get the distance, how should we 
                   make this into one single button */}
             {/* calls the getRoute funcion which gets the distance of the objects */}
-            <button onClick={getRoute}>Get Distance</button>
-            <br />
+            {(origin && destination && transportation) && (
+              <div>
+                <button className='large-button' onClick={getRoute}>Get Distance</button>
+                <br />
+              </div>
+            )}
             {duration && <p>Duration: {duration}</p>}
 
+
             {/* TODO: again, should be able to make this and getRoute together*/}
-            <button
-              className="large-button"
-              onClick={() => {
-                makePlaylist();
-                fetchPlaylists();
-              }}
-            >
-              Make Playlists
-            </button>
+            {duration && (
+              <div>
+                <button
+                  className="large-button"
+                  onClick={() => {
+                    makePlaylist();
+                    fetchPlaylists();
+                  }}
+                >
+                  Make Playlists
+                </button>
+              </div>
+            )}
 
             {/* 
               TODO: we can display something after the playlist has been made, but idk what 
@@ -460,3 +383,97 @@ function App() {
 }
 
 export default App;
+
+
+
+// // {/* creating the form for adding values to the database */}
+// <div className="DB-form">
+// <form onSubmit={handleCRUDformsubmit}>
+//   <label>
+//     Track name:
+//     <input
+//       type="text"
+//       value={CRUDtrackName}
+//       onChange={(e) => setCRUDtrackName(e.target.value)}
+//     />
+//   </label>
+//   <br />
+//   <label>
+//     Select the state by abbreviation:
+//     <select
+//       value={CRUDstate}
+//       onChange={(e) => setCRUDstate(e.target.value)}
+//     >
+//       {/* <option value="">Select State</option> */}
+//       <option value="AL">AL</option>
+//       <option value="AK">AK</option>
+//       <option value="AZ">AZ</option>
+//       <option value="AR">AR</option>
+//       <option value="CA">CA</option>
+//       <option value="CO">CO</option>
+//       <option value="CT">CT</option>
+//       <option value="DE">DE</option>
+//       <option value="DC">DC</option>
+//       <option value="FL">FL</option>
+//       <option value="GA">GA</option>
+//       <option value="HI">HI</option>
+//       <option value="ID">ID</option>
+//       <option value="IL">IL</option>
+//       <option value="IN">IN</option>
+//       <option value="IA">IA</option>
+//       <option value="KS">KS</option>
+//       <option value="KY">KY</option>
+//       <option value="LA">LA</option>
+//       <option value="ME">ME</option>
+//       <option value="MD">MD</option>
+//       <option value="MA">MA</option>
+//       <option value="MI">MI</option>
+//       <option value="MN">MN</option>
+//       <option value="MS">MS</option>
+//       <option value="MO">MO</option>
+//       <option value="MT">MT</option>
+//       <option value="NE">NE</option>
+//       <option value="NV">NV</option>
+//       <option value="NH">NH</option>
+//       <option value="NJ">NJ</option>
+//       <option value="NM">NM</option>
+//       <option value="NY">NY</option>
+//       <option value="NC">NC</option>
+//       <option value="ND">ND</option>
+//       <option value="OH">OH</option>
+//       <option value="OK">OK</option>
+//       <option value="OR">OR</option>
+//       <option value="PA">PA</option>
+//       <option value="RI">RI</option>
+//       <option value="SC">SC</option>
+//       <option value="SD">SD</option>
+//       <option value="TN">TN</option>
+//       <option value="TX">TX</option>
+//       <option value="UT">UT</option>
+//       <option value="VT">VT</option>
+//       <option value="VA">VA</option>
+//       <option value="WA">WA</option>
+//       <option value="WV">WV</option>
+//       <option value="WI">WI</option>
+//       <option value="WY">WY</option>
+//     </select>
+//   </label>
+//   <br />
+//   <label>
+//     Select the CRUD operation you want to do: <br />
+//     <select
+//       value={CRUDoperation}
+//       onChange={(e) => setCRUDoperation(e.target.value)}
+//     >
+//       <option value="CREATE">CREATE</option>
+//       <option value="READ">READ</option>
+//       <option value="READALL">READALL</option>
+//       <option value="DELETE">DELETE</option>
+//       <option value="DELETEALL">DELETEALL</option>
+//       {/* <option value="UPDATE">UPDATE</option> */}
+//     </select>
+//   </label>
+//   <button type="submit">Submit</button>
+// </form>
+// </div>
+

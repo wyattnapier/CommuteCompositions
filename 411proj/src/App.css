@@ -58,10 +58,49 @@ h1 {
   font-size: 90px;
 }
 
+h2 {
+  font-size: 60px;
+}
+
 form {
   font-size: 60px;
 }
 
 input {
   font-size: 60px;
+}
+
+
+/* Styling the react-select container */
+.select-container {
+  padding: 40px 80px;
+}
+
+/* Styling the dropdown menu */
+.select-container .select__menu {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling the options in the dropdown menu */
+.select-container .select__option {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* Styling the selected option */
+.select-container .select__option--is-selected {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.select-container .select__control .select__single-value {
+  font-size: 20px;
+  /* Adjust the font size as needed */
+}
+
+.select-container .select__menu .select__option {
+  font-size: 20px;
+  /* Adjust the font size as needed */
 }
