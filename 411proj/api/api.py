@@ -55,11 +55,15 @@ collection = db['tracks']
 ### filling in the database
 # Define the data to insert into the collection
 state_tracks_data = [
-    {"state": "VT", "tracks": ["stick season; Noah Kahan", "all is well; hans williams"]},
-    {"state": "NY", "tracks": ["Empire State of Mind; Jay-Z", "New York, New York; Frank Sinatra"]},
-    {"state": "CA", "tracks": ["California Love; 2pac", "Hotel California; eagles", "California Gurls; Katy Perry", "Californication; red hot chili peppers"]},
-    {"state": "FL", "tracks": ["Florida; Junior Varsity", "Florida!!!; Taylor Swift", "California Gurls; Katy Perry", "Californication; red hot chili peppers"]},
-
+    {"state": "NY", "tracks": ["Empire State of Mind - Jay-Z", "Welcome to New York - Taylor Swift", "Cornelia Street - Taylor Swift", "Coney Island - Taylor Swift", "Come back be here - Taylor Swift", "Uptown girl - Billy Joel", "All too Well - Taylor Swift", "Delicate - Taylor Swift"]},
+    {"state": "CA", "tracks": ["California Love - 2pac", "Hotel California - eagles", "California Gurls - Katy Perry", "Party in the USA - Miley Cyrus", "California Dreamin’ - Sia", "Malibu - Miley Cyrus", "The Very First Night - Taylor Swift", "I bet you think about me - Taylor Swift"]},
+    {"state": "FL", "tracks": ["Florida - Junior Varsity", "Florida!!! - Taylor Swift", "3 Nights - Dominic Fike", "Summer Feelings - Lennon Stella", "Escape - Rupert Holmes"]},
+    {"state": "PA", "tracks": ["seven - Taylor Swift", "gold rush - Taylor Swift"]},
+    {"state": "VT", "tracks": ["Stick Season - Noah kahan", "Moonlight in Vermont - Frank Sinatra", "Green Mountain State - Trevor Hall"]},
+    {"state": "MA", "tracks": ["I’m Shipping Up to Boston - Dropkick Murphys", "Homesick - Noah Kahan", "I Hate Boston - Renee Rapp", "Alewife - Clairo"]},
+    {"state": "GA", "tracks": ["Georgia - Vance Joy", "Georgia Walks - Hans Williams", "Georgia - Phoebe Bridgers", "Tim Mcgraw - Taylor Swift"]},
+    {"state": "HI", "tracks": ["Hawaiian Roller Coaster Ride - Lilo+Stitch", "Royal Hawaiian Hotel - The Brothers Cazimero", "Hawaiian Party - Cub Sport", "Mele Kalikimaka - Bing Crosby"]},
+    {"state": "IL", "tracks": ["End of Beginning - Djo", "Illinois - Sufjan Steven", "Chicago - Sufjan Stevens", "Chicago - flipturn", "Chicago - michael jackson",]},
     # Add more states and tracks as needed
 ]
 
@@ -347,9 +351,9 @@ def get_random_tracks(sp, length, selectedState):
       ### trying to fancily parse the artists and tracks
       # dbquery = options['tracks'][random_db_index] # we need them in an array to do this
       # print("dbquery:", dbquery)
-      # dbarti = dbquery.find(';')
+      # dbarti = dbquery.find('-')
       # # print("dbarti:", dbarti)
-      # dbtrack = dbquery[:dbarti]
+      # dbtrack = dbquery[:dbarti-1]
       # dbart = dbquery[dbarti+2:]
       # print("after splitting track:", dbtrack, " and artist:", dbart)
       # query = "track:" + str(dbtrack) + "artist:" + str(dbart)
