@@ -56,11 +56,11 @@ collection = db['tracks']
 # Define the data to insert into the collection
 state_tracks_data = [
     {"state": "NY", "tracks": ["Empire State of Mind - Jay-Z", "Welcome to New York - Taylor Swift", "Cornelia Street - Taylor Swift", "Coney Island - Taylor Swift", "Come back be here - Taylor Swift", "Uptown girl - Billy Joel", "All too Well - Taylor Swift", "Delicate - Taylor Swift"]},
-    {"state": "CA", "tracks": ["California Love - 2pac", "Hotel California - eagles", "California Gurls - Katy Perry", "Party in the USA - Miley Cyrus", "California Dreamin’ - Sia", "Malibu - Miley Cyrus", "The Very First Night - Taylor Swift", "I bet you think about me - Taylor Swift"]},
+    {"state": "CA", "tracks": ["California Love - 2pac", "Hotel California - eagles", "California Gurls - Katy Perry", "Party in the USA - Miley Cyrus", "California Dreamin - Sia", "Malibu - Miley Cyrus", "The Very First Night - Taylor Swift", "I bet you think about me - Taylor Swift"]},
     {"state": "FL", "tracks": ["Florida - Junior Varsity", "Florida!!! - Taylor Swift", "3 Nights - Dominic Fike", "Summer Feelings - Lennon Stella", "Escape - Rupert Holmes"]},
     {"state": "PA", "tracks": ["seven - Taylor Swift", "gold rush - Taylor Swift"]},
-    {"state": "VT", "tracks": ["Stick Season - Noah kahan", "Moonlight in Vermont - Frank Sinatra", "Green Mountain State - Trevor Hall"]},
-    {"state": "MA", "tracks": ["I’m Shipping Up to Boston - Dropkick Murphys", "Homesick - Noah Kahan", "I Hate Boston - Renee Rapp", "Alewife - Clairo"]},
+    {"state": "VT", "tracks": ["Stick Season - Noah kahan", "Moonlight in Vermont - Frank Sinatra", "Green Mountain State - Trevor Hallshipp"]},
+    {"state": "MA", "tracks": ["Im Shipping Up to Boston - Dropkick Murphys", "Homesick - Noah Kahan", "I Hate Boston - Renee Rapp", "Alewife - Clairo"]},
     {"state": "GA", "tracks": ["Georgia - Vance Joy", "Georgia Walks - Hans Williams", "Georgia - Phoebe Bridgers", "Tim Mcgraw - Taylor Swift"]},
     {"state": "HI", "tracks": ["Hawaiian Roller Coaster Ride - Lilo+Stitch", "Royal Hawaiian Hotel - The Brothers Cazimero", "Hawaiian Party - Cub Sport", "Mele Kalikimaka - Bing Crosby"]},
     {"state": "IL", "tracks": ["End of Beginning - Djo", "Illinois - Sufjan Steven", "Chicago - Sufjan Stevens", "Chicago - flipturn", "Chicago - michael jackson",]},
@@ -218,6 +218,7 @@ def get_user_playlists():
         # Fetch user playlists using the Spotipy client
         playlists = sp.current_user_playlists()
         # Extract the list of playlists from the paging object
+        # print(playlists)
         playlists_data = [{"id": playlist['id'], "name": playlist['name']} for playlist in playlists['items']]
 
         # Return playlists data as a JSON response

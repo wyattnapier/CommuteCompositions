@@ -19,6 +19,7 @@ function App() {
   const [CRUDtrackName, setCRUDtrackName] = useState("");
   const [CRUDstate, setCRUDstate] = useState("MA");
   const [embeddingLink, setEmbeddingLink] = useState(null);
+  const [viewState, setViewState] = useState(0);
 
   useEffect(() => {
     fetchLoggedIn();
@@ -56,6 +57,9 @@ function App() {
 
       const data = await response.json();
       setLoggedIn(data.loggedIn);
+      if (data.loggedIn && viewState < 1) {
+        setViewState(1); // change to next viewstate
+      }
     } catch (error) {
       console.error("login info error", error);
     }
@@ -108,9 +112,7 @@ function App() {
         //TODO: currently just setting to true, but if there is useful info
         //from the playlist then we should somehow incorporate that here
         let playlist_external_url = playlistData["external_urls"]["spotify"];
-        console.log("external url:", playlist_external_url);
-        let playlist_uri = playlistData["uri"];
-        console.log("playlist_uri:", playlist_uri);
+        // let playlist_uri = playlistData["uri"];
         setEmbeddingLink(playlist_external_url);
         setMade(true);
       } else {
@@ -130,6 +132,7 @@ function App() {
       if (response.ok) {
         const routeData = await response.json();
         setDuration(routeData.duration);
+        setViewState(2);
       } else {
         console.error("Failed to get route:", response.statusText);
       }
@@ -216,11 +219,172 @@ function App() {
     }
   };
 
-  return (
-    <div className="App">
-      <header className="App-header">
+  /*
+   * stage 0: login
+   * stage 1: enter playlist info
+   * stage 1.5: calculate distance (in stage 1)
+   * stage 2: makeplaylist button appears
+   * stage 3: loading screen while playlist generates
+   * stage 4: embed the playlist (maybe button to generate another)
+   */
+  if (viewState == 0) {
+    console.log("viewState 0");
+    return (
+      <div className="App">
         <div>
-          {embeddingLink && (
+          <h1>Commute Compositions</h1>
+          <button className="large-button" onClick={fetchAuthUrl}>
+            Log In
+          </button>
+        </div>
+      </div>
+    );
+  } else if (viewState == 1) {
+    console.log("viewState 1");
+    return (
+      <div className="App">
+        <p>Logged In!</p>
+        <p>Origin:</p>
+        {gMapsApiKey && (
+          <GooglePlacesAutocomplete
+            apiKey={gMapsApiKey}
+            autocompletionRequest={{
+              types: ["geocode"],
+            }}
+            placeholder="Search for an address"
+            className="google-places-autocomplete"
+            selectProps={{
+              origin,
+              onChange: (selected) => setOrigin(selected.value.place_id),
+              styles: {
+                input: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                option: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                singleValue: (provided) => ({
+                  ...provided,
+                  color: "blue",
+                }),
+              },
+            }}
+          />
+        )}
+        {origin && <p>Origin: {origin}</p>}
+
+        {/* the place autocomplete functionality for the destination */}
+        <p>Destination:</p>
+        {gMapsApiKey && (
+          <GooglePlacesAutocomplete
+            apiKey={gMapsApiKey}
+            autocompletionRequest={{
+              types: ["geocode"],
+            }}
+            placeholder="Search for an address"
+            className="google-places-autocomplete"
+            selectProps={{
+              destination,
+              onChange: (selected) => {
+                setDestination(selected.value.place_id);
+                let s = selected.value.description;
+                let i = s.search("USA");
+                let stateStart = i - 4;
+                setDestState(s.substring(stateStart, stateStart + 2));
+              },
+              styles: {
+                input: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                option: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                singleValue: (provided) => ({
+                  ...provided,
+                  color: "blue",
+                }),
+              },
+            }}
+          />
+        )}
+        {/* Transportation form */}
+        <form>
+          <label>
+            Select your preferred transportation: <br />
+            <select
+              value={transportation}
+              onChange={(e) => setTransportation(e.target.value)}
+            >
+              <option value="driving">Driving</option>
+              <option value="walking">Walking</option>
+              <option value="bicycling">Bicycling</option>
+              <option value="transit">Transit</option>
+            </select>
+          </label>
+        </form>
+        {destination && (
+          <p>
+            Destination: {destination} AND in state: {destState}
+          </p>
+        )}
+        {origin && destination && (
+          <div className="distanceCalc">
+            <button onClick={getRoute}>Get Distance</button>
+            <br />
+            {duration && <p>Duration: {duration}</p>}
+          </div>
+        )}
+      </div>
+    );
+  } else if (viewState == 2) {
+    console.log("viewState 2");
+    return (
+      <div className="App">
+        {duration && <p>Duration: {duration}</p>}
+
+        {/* TODO: again, should be able to make this and getRoute together*/}
+        <button
+          className="large-button"
+          onClick={() => {
+            setViewState(3);
+            makePlaylist();
+            fetchPlaylists();
+          }}
+        >
+          Make Playlists
+        </button>
+      </div>
+    );
+  } else if (viewState == 3) {
+    console.log("viewState 3");
+    return (
+      <div className="App">
+        {duration && <p>Duration: {duration}</p>}
+
+        {/* TODO: again, should be able to make this and getRoute together*/}
+        <button
+          className="large-button"
+          onClick={() => {
+            setViewState(4);
+            makePlaylist();
+            fetchPlaylists();
+          }}
+        >
+          Make Playlists
+        </button>
+      </div>
+    );
+  } else if (viewState == 4) {
+    console.log("viewState 4");
+    return (
+      <div className="App">
+        {madePlaylist ? (
+          // used to condition on embeddingLink here, but should be covered by madePlaylist?
+          <div>
             <Spotify
               link={embeddingLink}
               view="coverart" // Set the view to "coverart" to display only the cover art
@@ -228,235 +392,262 @@ function App() {
               height={380}
               theme="black" // Set the theme to "black" for a dark theme
             />
-          )}
-        </div>
-        <div className="DB-form">
-          <form onSubmit={handleCRUDformsubmit}>
-            <label>
-              Track name:
-              <input
-                type="text"
-                value={CRUDtrackName}
-                onChange={(e) => setCRUDtrackName(e.target.value)}
-              />
-            </label>
-            <br />
-            <label>
-              Select the state by abbreviation:
-              <select
-                value={CRUDstate}
-                onChange={(e) => setCRUDstate(e.target.value)}
-              >
-                {/* <option value="">Select State</option> */}
-                <option value="AL">AL</option>
-                <option value="AK">AK</option>
-                <option value="AZ">AZ</option>
-                <option value="AR">AR</option>
-                <option value="CA">CA</option>
-                <option value="CO">CO</option>
-                <option value="CT">CT</option>
-                <option value="DE">DE</option>
-                <option value="DC">DC</option>
-                <option value="FL">FL</option>
-                <option value="GA">GA</option>
-                <option value="HI">HI</option>
-                <option value="ID">ID</option>
-                <option value="IL">IL</option>
-                <option value="IN">IN</option>
-                <option value="IA">IA</option>
-                <option value="KS">KS</option>
-                <option value="KY">KY</option>
-                <option value="LA">LA</option>
-                <option value="ME">ME</option>
-                <option value="MD">MD</option>
-                <option value="MA">MA</option>
-                <option value="MI">MI</option>
-                <option value="MN">MN</option>
-                <option value="MS">MS</option>
-                <option value="MO">MO</option>
-                <option value="MT">MT</option>
-                <option value="NE">NE</option>
-                <option value="NV">NV</option>
-                <option value="NH">NH</option>
-                <option value="NJ">NJ</option>
-                <option value="NM">NM</option>
-                <option value="NY">NY</option>
-                <option value="NC">NC</option>
-                <option value="ND">ND</option>
-                <option value="OH">OH</option>
-                <option value="OK">OK</option>
-                <option value="OR">OR</option>
-                <option value="PA">PA</option>
-                <option value="RI">RI</option>
-                <option value="SC">SC</option>
-                <option value="SD">SD</option>
-                <option value="TN">TN</option>
-                <option value="TX">TX</option>
-                <option value="UT">UT</option>
-                <option value="VT">VT</option>
-                <option value="VA">VA</option>
-                <option value="WA">WA</option>
-                <option value="WV">WV</option>
-                <option value="WI">WI</option>
-                <option value="WY">WY</option>
-              </select>
-            </label>
-            <br />
-            <label>
-              Select the CRUD operation you want to do: <br />
-              <select
-                value={CRUDoperation}
-                onChange={(e) => setCRUDoperation(e.target.value)}
-              >
-                <option value="CREATE">CREATE</option>
-                <option value="READ">READ</option>
-                <option value="READALL">READALL</option>
-                <option value="DELETE">DELETE</option>
-                <option value="DELETEALL">DELETEALL</option>
-                {/* <option value="UPDATE">UPDATE</option> */}
-              </select>
-            </label>
-            <button type="submit">Submit</button>
-          </form>
-        </div>
-        {isLoggedIn ? (
-          <div>
-            <p>Logged In!</p>
-            <div>
-              {/* the place autocomplete functionality for origin */}
-              <p>Origin:</p>
-              {gMapsApiKey && (
-                <GooglePlacesAutocomplete
-                  apiKey={gMapsApiKey}
-                  autocompletionRequest={{
-                    types: ["geocode"],
-                  }}
-                  placeholder="Search for an address"
-                  className="google-places-autocomplete"
-                  selectProps={{
-                    origin,
-                    onChange: (selected) => setOrigin(selected.value.place_id),
-                    styles: {
-                      input: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      option: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      singleValue: (provided) => ({
-                        ...provided,
-                        color: "blue",
-                      }),
-                    },
-                  }}
-                />
-              )}
-              {origin && <p>Origin: {origin}</p>}
-
-              {/* the place autocomplete functionality for the destination */}
-              <p>Destination:</p>
-              {gMapsApiKey && (
-                <GooglePlacesAutocomplete
-                  apiKey={gMapsApiKey}
-                  autocompletionRequest={{
-                    types: ["geocode"],
-                  }}
-                  placeholder="Search for an address"
-                  className="google-places-autocomplete"
-                  selectProps={{
-                    destination,
-                    onChange: (selected) => {
-                      setDestination(selected.value.place_id);
-                      let s = selected.value.description;
-                      let i = s.search("USA");
-                      let stateStart = i - 4;
-                      setDestState(s.substring(stateStart, stateStart + 2));
-                    },
-                    styles: {
-                      input: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      option: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      singleValue: (provided) => ({
-                        ...provided,
-                        color: "blue",
-                      }),
-                    },
-                  }}
-                />
-              )}
-              {/* Transportation form */}
-              <form>
-                <label>
-                  Select your preferred transportation: <br />
-                  <select
-                    value={transportation}
-                    onChange={(e) => setTransportation(e.target.value)}
-                  >
-                    <option value="driving">Driving</option>
-                    <option value="walking">Walking</option>
-                    <option value="bicycling">Bicycling</option>
-                    <option value="transit">Transit</option>
-                  </select>
-                </label>
-              </form>
-              {destination && (
-                <p>
-                  Destination: {destination} AND in state: {destState}
-                </p>
-              )}
-            </div>
-
-            {/* TODO: currently needs to be called to get the distance, how should we 
-                  make this into one single button */}
-            {/* calls the getRoute funcion which gets the distance of the objects */}
-            <button onClick={getRoute}>Get Distance</button>
-            <br />
-            {duration && <p>Duration: {duration}</p>}
-
-            {/* TODO: again, should be able to make this and getRoute together*/}
             <button
-              className="large-button"
               onClick={() => {
-                makePlaylist();
-                fetchPlaylists();
+                setViewState(1);
+                setDestination(null);
+                setOrigin(null);
+                setDuration(null);
               }}
             >
-              Make Playlists
+              Generate another playlist!
             </button>
-
-            {/* 
-              TODO: we can display something after the playlist has been made, but idk what 
-              currently shows state of playlists right before adding the new playlist we just made :0
-            */}
-            {madePlaylist ? (
-              <ul>
-                {playlists.map((playlist) => (
-                  <li key={playlist.id}>{playlist.name}</li>
-                ))}
-              </ul>
-            ) : (
-              <></>
-            )}
           </div>
         ) : (
-          // log in page for spotify
-          <div>
-            <h1>Commute Compositions</h1>
-            <button className="large-button" onClick={fetchAuthUrl}>
-              Log In
-            </button>
-          </div>
+          <h1>Loading...</h1>
         )}
-      </header>
-    </div>
-  );
+      </div>
+    );
+  } else {
+    return (
+      <div className="App">
+        <p>Oof</p>
+      </div>
+    );
+  }
 }
 
 export default App;
+
+//////////////////////////////////////////////////////////////////////////////// ORIGINAL FRONTEND STRUCTURE /////////////////////////////////////////////////////////////////
+{
+  /*
+<div className="App">
+<header className="App-header">
+  <div>
+    {embeddingLink && (
+      <Spotify
+        link={embeddingLink}
+        view="coverart" // Set the view to "coverart" to display only the cover art
+        width={700}
+        height={380}
+        theme="black" // Set the theme to "black" for a dark theme
+      />
+    )}
+  </div>
+  <div className="DB-form">
+    <form onSubmit={handleCRUDformsubmit}>
+      <label>
+        Track name:
+        <input
+          type="text"
+          value={CRUDtrackName}
+          onChange={(e) => setCRUDtrackName(e.target.value)}
+        />
+      </label>
+      <br />
+      <label>
+        Select the state by abbreviation:
+        <select
+          value={CRUDstate}
+          onChange={(e) => setCRUDstate(e.target.value)}
+        >
+          <option value="AL">AL</option>
+          <option value="AK">AK</option>
+          <option value="AZ">AZ</option>
+          <option value="AR">AR</option>
+          <option value="CA">CA</option>
+          <option value="CO">CO</option>
+          <option value="CT">CT</option>
+          <option value="DE">DE</option>
+          <option value="DC">DC</option>
+          <option value="FL">FL</option>
+          <option value="GA">GA</option>
+          <option value="HI">HI</option>
+          <option value="ID">ID</option>
+          <option value="IL">IL</option>
+          <option value="IN">IN</option>
+          <option value="IA">IA</option>
+          <option value="KS">KS</option>
+          <option value="KY">KY</option>
+          <option value="LA">LA</option>
+          <option value="ME">ME</option>
+          <option value="MD">MD</option>
+          <option value="MA">MA</option>
+          <option value="MI">MI</option>
+          <option value="MN">MN</option>
+          <option value="MS">MS</option>
+          <option value="MO">MO</option>
+          <option value="MT">MT</option>
+          <option value="NE">NE</option>
+          <option value="NV">NV</option>
+          <option value="NH">NH</option>
+          <option value="NJ">NJ</option>
+          <option value="NM">NM</option>
+          <option value="NY">NY</option>
+          <option value="NC">NC</option>
+          <option value="ND">ND</option>
+          <option value="OH">OH</option>
+          <option value="OK">OK</option>
+          <option value="OR">OR</option>
+          <option value="PA">PA</option>
+          <option value="RI">RI</option>
+          <option value="SC">SC</option>
+          <option value="SD">SD</option>
+          <option value="TN">TN</option>
+          <option value="TX">TX</option>
+          <option value="UT">UT</option>
+          <option value="VT">VT</option>
+          <option value="VA">VA</option>
+          <option value="WA">WA</option>
+          <option value="WV">WV</option>
+          <option value="WI">WI</option>
+          <option value="WY">WY</option>
+        </select>
+      </label>
+      <br />
+      <label>
+        Select the CRUD operation you want to do: <br />
+        <select
+          value={CRUDoperation}
+          onChange={(e) => setCRUDoperation(e.target.value)}
+        >
+          <option value="CREATE">CREATE</option>
+          <option value="READ">READ</option>
+          <option value="READALL">READALL</option>
+          <option value="DELETE">DELETE</option>
+          <option value="DELETEALL">DELETEALL</option>
+        </select>
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+  {isLoggedIn ? (
+    <div>
+      <p>Logged In!</p>
+      <div>
+        <p>Origin:</p>
+        {gMapsApiKey && (
+          <GooglePlacesAutocomplete
+            apiKey={gMapsApiKey}
+            autocompletionRequest={{
+              types: ["geocode"],
+            }}
+            placeholder="Search for an address"
+            className="google-places-autocomplete"
+            selectProps={{
+              origin,
+              onChange: (selected) => setOrigin(selected.value.place_id),
+              styles: {
+                input: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                option: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                singleValue: (provided) => ({
+                  ...provided,
+                  color: "blue",
+                }),
+              },
+            }}
+          />
+        )}
+        {origin && <p>Origin: {origin}</p>}
+
+        <p>Destination:</p>
+        {gMapsApiKey && (
+          <GooglePlacesAutocomplete
+            apiKey={gMapsApiKey}
+            autocompletionRequest={{
+              types: ["geocode"],
+            }}
+            placeholder="Search for an address"
+            className="google-places-autocomplete"
+            selectProps={{
+              destination,
+              onChange: (selected) => {
+                setDestination(selected.value.place_id);
+                let s = selected.value.description;
+                let i = s.search("USA");
+                let stateStart = i - 4;
+                setDestState(s.substring(stateStart, stateStart + 2));
+              },
+              styles: {
+                input: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                option: (provided) => ({
+                  ...provided,
+                  color: "black",
+                }),
+                singleValue: (provided) => ({
+                  ...provided,
+                  color: "blue",
+                }),
+              },
+            }}
+          />
+        )}
+        <form>
+          <label>
+            Select your preferred transportation: <br />
+            <select
+              value={transportation}
+              onChange={(e) => setTransportation(e.target.value)}
+            >
+              <option value="driving">Driving</option>
+              <option value="walking">Walking</option>
+              <option value="bicycling">Bicycling</option>
+              <option value="transit">Transit</option>
+            </select>
+          </label>
+        </form>
+        {destination && (
+          <p>
+            Destination: {destination} AND in state: {destState}
+          </p>
+        )}
+      </div>
+
+      <button onClick={getRoute}>Get Distance</button>
+      <br />
+      {duration && <p>Duration: {duration}</p>}
+
+      <button
+        className="large-button"
+        onClick={() => {
+          makePlaylist();
+          fetchPlaylists();
+        }}
+      >
+        Make Playlists
+      </button>
+
+      {madePlaylist ? (
+        <ul>
+          {playlists.map((playlist) => (
+            <li key={playlist.id}>{playlist.name}</li>
+          ))}
+        </ul>
+      ) : (
+        <></>
+      )}
+    </div>
+  ) : (
+    // log in page for spotify
+    <div>
+      <h1>Commute Compositions</h1>
+      <button className="large-button" onClick={fetchAuthUrl}>
+        Log In
+      </button>
+    </div>
+  )}
+</header>
+</div>
+
+*/
+}
