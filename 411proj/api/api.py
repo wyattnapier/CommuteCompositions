@@ -55,9 +55,11 @@ collection = db['tracks']
 ### filling in the database
 # Define the data to insert into the collection
 state_tracks_data = [
-    {"state": "VT", "tracks": ["stick season", "all is well"]},
-    {"state": "NY", "tracks": ["Empire State of Mind", "New York, New York"]},
-    {"state": "CA", "tracks": ["California Love", "Hotel California", "California Gurls", "Californication"]},
+    {"state": "VT", "tracks": ["stick season; Noah Kahan", "all is well; hans williams"]},
+    {"state": "NY", "tracks": ["Empire State of Mind; Jay-Z", "New York, New York; Frank Sinatra"]},
+    {"state": "CA", "tracks": ["California Love; 2pac", "Hotel California; eagles", "California Gurls; Katy Perry", "Californication; red hot chili peppers"]},
+    {"state": "FL", "tracks": ["Florida; Junior Varsity", "Florida!!!; Taylor Swift", "California Gurls; Katy Perry", "Californication; red hot chili peppers"]},
+
     # Add more states and tracks as needed
 ]
 
@@ -319,27 +321,46 @@ def get_random_tracks(sp, length, selectedState):
   cumulative_time=0
   track_uris = []
   i = 0
+  stariter = 0
   while cumulative_time < (length*1000): #need to check the units of duration that is passed in to make sure we properly convert to ms
     # RANDOM DOES NOT WORK FOR SOME REASON
     random_char_index_array = [26, 19, 1, 21, 24, 15, 0, 4, 22, 17, 10, 14, 11, 12, 18, 2, 13, 3, 25, 8, 9, 16, 23, 7, 6, 5, 20]
-    random_index = random_char_index_array[i%27]
+    random_index = int(random_char_index_array[i%27])
     random_offset_array = [38, 40, 33, 20, 14, 25, 2, 12, 5, 44, 21, 50, 26, 36, 18, 43, 32, 23, 17, 49, 34, 22, 30, 27, 15, 47, 7, 3, 9, 48, 45, 10, 42, 31, 46, 29, 28, 24, 13, 37, 19, 41, 16, 35, 4, 39, 6, 1, 11, 8]
-    random_offset = random_offset_array[i%50]
+    random_offset = int(random_offset_array[i%50])
     query = random_string[random_index]
     if query == "*":
       # TODO: this is when we want to grab from our database
-      print("hit the *")
       response = requests.get(f'http://localhost:5000/readstate?selectedState={selectedState}')
       options = response.json()
-      print(options)
+      print("iteration throught he star section: ", stariter)
       # if not options:
       #   return jsonify({"error": f"Error fetching tracks from db when making playlist"}), 500
-      random_db_index = (i+random_offset)%len(options)
-      query = options['tracks'][random_db_index] # we need them in an array to do this
-      # query = options['trackName']
-      print("query from db: ", query)
+      if len(options['tracks']) <= stariter:
+         i+= 1
+         continue; # we will just be repeating if we try to put these in the database at this point because we'll have added all of the db tracks already
+      
+      # random_db_index = (i+random_offset+1)%len(options['tracks']) # the +1 is just for fun
+      # print("random db index:", random_db_index, " i:", i, " random_offset:", random_offset, " len(options):", len(options['tracks']))
+      random_db_index = stariter
+      
+      ### trying to fancily parse the artists and tracks
+      # dbquery = options['tracks'][random_db_index] # we need them in an array to do this
+      # print("dbquery:", dbquery)
+      # dbarti = dbquery.find(';')
+      # # print("dbarti:", dbarti)
+      # dbtrack = dbquery[:dbarti]
+      # dbart = dbquery[dbarti+2:]
+      # print("after splitting track:", dbtrack, " and artist:", dbart)
+      # query = "track:" + str(dbtrack) + "artist:" + str(dbart)
+      # print("query from db: ", query)
+
+      ### giving up on fancily parsing
+      query = options['tracks'][random_db_index] 
+      print("query:", query)
       random_offset = 0
-      # query = "never gonna give you up" #filler for grabbing randomly from database
+      print()
+      stariter += 1
       
     search_result = sp.search(q=query, type="track", offset=random_offset)
     # i = 0
