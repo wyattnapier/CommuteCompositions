@@ -10,7 +10,7 @@ function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [madePlaylist, setMade] = useState(false);
   const [destination, setDestination] = useState(null);
-  const [destState, setDestState] = useState("CA");
+  const [destState, setDestState] = useState(null);
   const [origin, setOrigin] = useState(null);
   const [gMapsApiKey, setGMapsApiKey] = useState("");
   const [duration, setDuration] = useState(null);
@@ -19,6 +19,7 @@ function App() {
   const [CRUDtrackName, setCRUDtrackName] = useState("");
   const [CRUDstate, setCRUDstate] = useState("MA");
   const [embeddingLink, setEmbeddingLink] = useState(null);
+  const [makingPlaylist, setMakingPlaylist] = useState(false);
 
   useEffect(() => {
     fetchLoggedIn();
@@ -104,6 +105,7 @@ function App() {
         `/createPlaylist?length=${duration}&selectedState=${destState}`
       );
       if (response.ok) {
+        // setMakingPlaylist(true);
         const playlistData = await response.json();
         //TODO: currently just setting to true, but if there is useful info
         //from the playlist then we should somehow incorporate that here
@@ -111,8 +113,10 @@ function App() {
         console.log("external url:", playlist_external_url);
         let playlist_uri = playlistData["uri"];
         console.log("playlist_uri:", playlist_uri);
+        fetchPlaylists();
         setEmbeddingLink(playlist_external_url);
         setMade(true);
+        setMakingPlaylist(false);
       } else {
         console.error("Failed to fetch playlists:", response.statusText);
       }
@@ -130,6 +134,7 @@ function App() {
       if (response.ok) {
         const routeData = await response.json();
         setDuration(routeData.duration);
+        // makePlaylist();
       } else {
         console.error("Failed to get route:", response.statusText);
       }
@@ -233,126 +238,136 @@ function App() {
 
         {isLoggedIn ? (
           // if the user has logged into spotify, we can render the distance functionalities
-          <div>
-            <h2>Tell us about your commute!</h2>
-            <div>
-              {/* the place autocomplete functionality for origin */}
-              <p>Origin:</p>
-              {gMapsApiKey && (
-                <GooglePlacesAutocomplete
-                  apiKey={gMapsApiKey}
-                  autocompletionRequest={{
-                    types: ["geocode"],
-                  }}
-                  placeholder="Search for an address"
-                  className="google-places-autocomplete"
-                  selectProps={{
-                    origin,
-                    onChange: (selected) => setOrigin(selected.value.place_id),
-                    styles: {
-                      input: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      option: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      singleValue: (provided) => ({
-                        ...provided,
-                        color: "blue",
-                      }),
-                    },
-                  }}
-                />
-              )}
-              {/* {origin && <p>Origin: {origin}</p>} */}
 
-              {/* the place autocomplete functionality for the destination */}
-              <p>Destination:</p>
-              {gMapsApiKey && (
-                <GooglePlacesAutocomplete
-                  apiKey={gMapsApiKey}
-                  autocompletionRequest={{
-                    types: ["geocode"],
-                  }}
-                  placeholder="Search for an address"
-                  className="google-places-autocomplete"
-                  selectProps={{
-                    destination,
-                    onChange: (selected) => {
-                      setDestination(selected.value.place_id);
-                      let s = selected.value.description;
-                      let i = s.search("USA");
-                      let stateStart = i - 4;
-                      setDestState(s.substring(stateStart, stateStart + 2));
-                    },
-                    styles: {
-                      input: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      option: (provided) => ({
-                        ...provided,
-                        color: "black",
-                      }),
-                      singleValue: (provided) => ({
-                        ...provided,
-                        color: "blue",
-                      }),
-                    },
-                  }}
-                />
-              )}
-              {/* Transportation form */}
-              <form>
-                {/* <p>Select your preferred transportations:</p> */}
-                <label>
-                  Select your preferred transportation: <br />
-                  <select className='select-container'
-                    value={transportation}
-                    onChange={(e) => setTransportation(e.target.value)}
-                  >
-                    <option value="driving">Driving</option>
-                    <option value="walking">Walking</option>
-                    <option value="bicycling">Bicycling</option>
-                    <option value="transit">Transit</option>
-                  </select>
-                </label>
-              </form>
-              {/* {destination && (
+          <div>
+            {/* we also have to make sure it is not currently working on creating a playlist */}
+            <div>
+              {(!makingPlaylist && !madePlaylist) && (<div>
+                <h2>Tell us about your commute!</h2>
+                {/* the place autocomplete functionality for origin */}
+                <p>Origin:</p>
+                {gMapsApiKey && (
+                  <GooglePlacesAutocomplete
+                    apiKey={gMapsApiKey}
+                    autocompletionRequest={{
+                      types: ["geocode"],
+                    }}
+                    placeholder="Search for an address"
+                    className="google-places-autocomplete"
+                    selectProps={{
+                      origin,
+                      onChange: (selected) => setOrigin(selected.value.place_id),
+                      styles: {
+                        input: (provided) => ({
+                          ...provided,
+                          color: "black",
+                        }),
+                        option: (provided) => ({
+                          ...provided,
+                          color: "black",
+                        }),
+                        singleValue: (provided) => ({
+                          ...provided,
+                          color: "blue",
+                        }),
+                      },
+                    }}
+                  />
+                )}
+                {/* {origin && <p>Origin: {origin}</p>} */}
+
+                {/* the place autocomplete functionality for the destination */}
+                <p>Destination:</p>
+                {gMapsApiKey && (
+                  <GooglePlacesAutocomplete
+                    apiKey={gMapsApiKey}
+                    autocompletionRequest={{
+                      types: ["geocode"],
+                    }}
+                    placeholder="Search for an address"
+                    className="google-places-autocomplete"
+                    selectProps={{
+                      destination,
+                      onChange: (selected) => {
+                        setDestination(selected.value.place_id);
+                        let s = selected.value.description;
+                        let i = s.search("USA");
+                        let stateStart = i - 4;
+                        setDestState(s.substring(stateStart, stateStart + 2));
+                      },
+                      styles: {
+                        input: (provided) => ({
+                          ...provided,
+                          color: "black",
+                        }),
+                        option: (provided) => ({
+                          ...provided,
+                          color: "black",
+                        }),
+                        singleValue: (provided) => ({
+                          ...provided,
+                          color: "blue",
+                        }),
+                      },
+                    }}
+                  />
+                )}
+                {/* Transportation form */}
+                <form>
+                  {/* <p>Select your preferred transportations:</p> */}
+                  <label>
+                    Select your preferred transportation: <br />
+                    <select className='select-container'
+                      value={transportation}
+                      onChange={(e) => setTransportation(e.target.value)}
+                    >
+                      <option value="driving">Driving</option>
+                      <option value="walking">Walking</option>
+                      <option value="bicycling">Bicycling</option>
+                      <option value="transit">Transit</option>
+                    </select>
+                  </label>
+                </form>
+                {/* {destination && (
                 <p>
                   Destination: {destination} AND in state: {destState}
                 </p>
               )} */}
-            </div>
+              </div>)}
 
-            {/* TODO: currently needs to be called to get the distance, how should we 
+              {/* TODO: currently needs to be called to get the distance, how should we 
                   make this into one single button */}
-            {/* calls the getRoute funcion which gets the distance of the objects */}
-            {(origin && destination && transportation) && (
-              <div>
-                <button className='large-button' onClick={getRoute}>Get Distance</button>
-                <br />
-              </div>
-            )}
-            {duration && <p>Duration: {duration}</p>}
+              {/* calls the getRoute funcion which gets the distance of the objects */}
+              {(origin && destination && transportation) && (
+                <div>
+                  <button className='large-button' onClick={getRoute}>Submit</button>
+                  <br />
+                </div>
+              )}
+              {/* {duration && <p>Duration: {duration}</p>} */}
 
 
-            {/* TODO: again, should be able to make this and getRoute together*/}
-            {duration && (
-              <div>
-                <button
-                  className="large-button"
-                  onClick={() => {
-                    makePlaylist();
-                    fetchPlaylists();
-                  }}
-                >
-                  Make Playlists
-                </button>
-              </div>
-            )}
+              {/* TODO: again, should be able to make this and getRoute together*/}
+              {(origin && destination && !makingPlaylist) && (
+                <div>
+                  <button
+                    className="large-button"
+                    onClick={() => {
+                      // getRoute();
+                      makePlaylist();
+                      setMakingPlaylist(true);
+                      // fixed the fetchPlaylist issue
+                    }}
+                  >
+                    Make Playlists
+                  </button>
+                </div>
+              )}
+
+              {(makingPlaylist) && (
+                <p>making playlist...</p>
+              )}
+            </div>
 
             {/* 
               TODO: we can display something after the playlist has been made, but idk what 

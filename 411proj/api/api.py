@@ -278,16 +278,17 @@ def return_oauth():
 @app.route('/createPlaylist')
 def create_playlist():
   try: 
+    print(1)
     #get the spotify token info for access to spotify
     token_info = getToken() 
     if not token_info:
       return jsonify({"error": "No token info found"}), 401
-    
+    print(2)
     #get the access token so we are able to make the playlist
     access_token = token_info['access_token']
     sp = spotipy.Spotify(auth=access_token)
     user_id = sp.current_user()['id']
-
+    print(3)
     #create new playlist 
     new_playlist = sp.user_playlist_create(
        user=user_id,
@@ -296,13 +297,13 @@ def create_playlist():
        collaborative=False,
        description="Made with LOVE (and like our 411 project)"
     )
-
+    print(4)
     playlist_id = new_playlist['id']
     # playlist_external_url = new_playlist['external_urls']['spotify']
     # print("external url:", playlist_external_url)
     # playlist_uri = new_playlist['uri']
     # print("playlist_uri:", playlist_uri)
-
+    print(5)
     #get the length that was passed in through the request
     length = int(request.args.get('length'))
     selectedState = request.args.get('selectedState')
@@ -310,7 +311,7 @@ def create_playlist():
     print("random tracks:", random_tracks)
 
     sp.user_playlist_add_tracks(user_id, playlist_id, random_tracks)
-
+    print(6)
     #right now just returns the whole playlist? 
     #TODO: figure out what we acc need from this playlist and change return value
     return jsonify(new_playlist)
@@ -321,6 +322,7 @@ def create_playlist():
 #randomly chooses the tracks for the playlist
 #TODO: need to make this more randomized (how???) and implement the database into it
 def get_random_tracks(sp, length, selectedState):
+  print("getting random tracks")
   random_string = "abcdefghijklmnopqrstuvwxyz*"
   cumulative_time=0
   track_uris = []
