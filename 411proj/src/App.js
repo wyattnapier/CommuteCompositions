@@ -10,7 +10,7 @@ function App() {
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [madePlaylist, setMade] = useState(false);
   const [destination, setDestination] = useState(null);
-  const [destState, setDestState] = useState(null);
+  const [destState, setDestState] = useState("CA");
   const [origin, setOrigin] = useState(null);
   const [gMapsApiKey, setGMapsApiKey] = useState("");
   const [duration, setDuration] = useState(null);
