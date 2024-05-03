@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
+import spotify from './spotify.png';
 import "./App.css";
 import './spinner.css'
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
@@ -233,17 +234,6 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div>
-          {embeddingLink && (
-            <Spotify
-              link={embeddingLink}
-              view="coverart" // Set the view to "coverart" to display only the cover art
-              width={700}
-              height={380}
-              theme="black" // Set the theme to "black" for a dark theme
-            />
-          )}
-        </div>
 
         {isLoggedIn ? (
           // if the user has logged into spotify, we can render the distance functionalities
@@ -254,7 +244,7 @@ function App() {
               {(!makingPlaylist && !madePlaylist) && (<div>
                 <h2>Tell us about your commute!</h2>
                 {/* the place autocomplete functionality for origin */}
-                <p>Origin:</p>
+                <h3>Origin:</h3>
                 {gMapsApiKey && (
                   <GooglePlacesAutocomplete
                     apiKey={gMapsApiKey}
@@ -286,7 +276,7 @@ function App() {
                 {/* {origin && <p>Origin: {origin}</p>} */}
 
                 {/* the place autocomplete functionality for the destination */}
-                <p>Destination:</p>
+                <h3>Destination:</h3>
                 {gMapsApiKey && (
                   <GooglePlacesAutocomplete
                     apiKey={gMapsApiKey}
@@ -349,15 +339,15 @@ function App() {
               {/* calls the getRoute funcion which gets the distance of the objects */}
               {(origin && destination && transportation && !makingPlaylist && !madePlaylist) && (
                 <div>
-                  <button onClick={getRoute}>Submit</button>
+                  <button className="med-button" onClick={getRoute}>Submit</button>
                   <br />
                 </div>
               )}
-              {/* {duration && <p>Duration: {duration}</p>} */}
+              {(duration && !makingPlaylist && !madePlaylist) && <p>Your commute will be: {duration} seconds</p>}
 
 
               {/* TODO: again, should be able to make this and getRoute together*/}
-              {(duration && !makingPlaylist) && (
+              {(duration && !makingPlaylist && !madePlaylist) && (
                 <div>
                   <button
                     className="large-button"
@@ -378,8 +368,20 @@ function App() {
                 <Spinner /> // Render spinner while loading
               )}
 
+              <div>
+                {embeddingLink && (
+                  <Spotify
+                    link={embeddingLink}
+                    view="coverart" // Set the view to "coverart" to display only the cover art
+                    width={700}
+                    height={380}
+                    theme="black" // Set the theme to "black" for a dark theme
+                  />
+                )}
+              </div>
+
               {madePlaylist && (
-                <button onClick={() => {
+                <button className='large-button' onClick={() => {
                   setMade(false);
                   setDestination(null);
                   setDestState(null);
@@ -389,6 +391,7 @@ function App() {
                   setMakingPlaylist(false);
                 }}>Make Another Playlist!</button>
               )}
+
             </div>
 
             {/* 
@@ -409,7 +412,9 @@ function App() {
           // log in page for spotify
           <div>
             <h1>Commute Compositions</h1>
+            <p>Create a playlist for your journey!</p>
             <button className="large-button" onClick={fetchAuthUrl}>
+              <img src={spotify} alt="Spotify Logo" className="spotify-logo" />
               Log In
             </button>
           </div>

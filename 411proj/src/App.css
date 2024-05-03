@@ -53,6 +53,12 @@
   /* Add border radius for rounded corners */
 }
 
+.med-button {
+  font-size: 30px;
+  padding: 20px 40px;
+  border-radius: 5px;
+}
+
 
 h1 {
   font-size: 90px;
@@ -60,6 +66,10 @@ h1 {
 
 h2 {
   font-size: 60px;
+}
+
+h3 {
+  font-size: 30px;
 }
 
 form {
@@ -70,10 +80,19 @@ input {
   font-size: 60px;
 }
 
+label {
+  font-size: 30px;
+  /* Change the font size for the label */
+  font-weight: bold;
+  /* Optional: Change font weight */
+}
 
 /* Styling the react-select container */
 .select-container {
-  padding: 40px 80px;
+  padding: 30px 60px;
+  font-size: 30px;
+  border-radius: 5px;
+  /* border: 10px; */
 }
 
 /* Styling the dropdown menu */
@@ -85,7 +104,7 @@ input {
 
 /* Styling the options in the dropdown menu */
 .select-container .select__option {
-  padding: 8px 12px;
+  /* padding: 8px 12px; */
   cursor: pointer;
 }
 
@@ -103,4 +122,10 @@ input {
 .select-container .select__menu .select__option {
   font-size: 20px;
   /* Adjust the font size as needed */
+}
+
+.spotify-logo {
+  width: 55px;
+  height: 55px;
+  margin-right: 20px;
 }

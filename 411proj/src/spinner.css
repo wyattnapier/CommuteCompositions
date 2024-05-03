@@ -11,8 +11,8 @@
 
 /* Styling for the spinner */
 .spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top: 4px solid #333;
+  border: 4px solid rgba(101, 100, 100, 0.1);
+  border-top: 4px solid #ffffff;
   /* Change color here */
   border-radius: 50%;
   width: 50px;
