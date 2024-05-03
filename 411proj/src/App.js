@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
-import spotify from './spotify.png';
+import spotify from "./spotify.png";
 import "./App.css";
-import './spinner.css'
+import "./spinner.css";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { Spotify } from "react-spotify-embed";
 
 function App() {
   const [playlists, setPlaylists] = useState([]);
-  const [authUrl, setAuthUrl] = useState("");
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [madePlaylist, setMade] = useState(false);
   const [destination, setDestination] = useState(null);
@@ -17,9 +16,6 @@ function App() {
   const [gMapsApiKey, setGMapsApiKey] = useState("");
   const [duration, setDuration] = useState(null);
   const [transportation, setTransportation] = useState("driving");
-  const [CRUDoperation, setCRUDoperation] = useState("CREATE");
-  const [CRUDtrackName, setCRUDtrackName] = useState("");
-  const [CRUDstate, setCRUDstate] = useState("MA");
   const [embeddingLink, setEmbeddingLink] = useState(null);
   const [makingPlaylist, setMakingPlaylist] = useState(false);
 
@@ -56,7 +52,6 @@ function App() {
   };
 
   //gets the input from backend about whether the user has logged in
-  //TODO: this is currently just calling repeatedly, could we change this to only periodic calls
   const fetchLoggedIn = async () => {
     try {
       const response = await fetch("/ret");
@@ -73,7 +68,6 @@ function App() {
   };
 
   //gets the input from backend for API key for google maps
-  //TODO: this is currently just calling repeatedly, could we change this to only periodic calls
   const fetchAPIKey = async () => {
     try {
       const response = await fetch("/api/google-maps-api-key");
@@ -115,14 +109,8 @@ function App() {
         `/createPlaylist?length=${duration}&selectedState=${destState}`
       );
       if (response.ok) {
-        // setMakingPlaylist(true);
         const playlistData = await response.json();
-        //TODO: currently just setting to true, but if there is useful info
-        //from the playlist then we should somehow incorporate that here
         let playlist_external_url = playlistData["external_urls"]["spotify"];
-        console.log("external url:", playlist_external_url);
-        let playlist_uri = playlistData["uri"];
-        console.log("playlist_uri:", playlist_uri);
         fetchPlaylists();
         setEmbeddingLink(playlist_external_url);
         setMade(true);
@@ -153,201 +141,124 @@ function App() {
     }
   };
 
-  // making this async may have borken it --> may just need to call this function from the lambda function in the form onSubmit
-  const handleCRUDformsubmit = async (e) => {
-    e.preventDefault();
-    console.log("call the appropriate route");
-    try {
-      if (CRUDoperation === "CREATE") {
-        console.log("Adding to the playlist by calling the create route");
-        const response = await fetch("/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            trackName: CRUDtrackName,
-            selectedState: CRUDstate,
-            // Add other fields as needed
-          }),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Document created successfully:", data);
-        } else {
-          console.error("Failed to create document:", response.statusText);
-        }
-      } else if (CRUDoperation === "READ") {
-        console.log("Reading from the playlist by calling the read route");
-        const response = await fetch(
-          `/read?selectedState=${CRUDstate}&trackName=${CRUDtrackName}`,
-          { method: "GET" }
-        );
-        if (response.ok) {
-          const document = await response.json();
-          console.log("Document retrieved successfully:", document);
-        } else {
-          console.error("Failed to retrieve document:", response.statusText);
-        }
-      } else if (CRUDoperation === "READALL") {
-        console.log("Reading from the playlist by calling the read route");
-        const response = await fetch(`/read`, { method: "GET" });
-        if (response.ok) {
-          const documents = await response.text(); // Read the response as text
-          console.log("Documents retrieved successfully:", documents);
-        } else {
-          console.error("Failed to retrieve documents:", response.statusText);
-        }
-      } else if (CRUDoperation === "DELETE") {
-        console.log("Deleting from the playlist by calling the delete route");
-        const response = await fetch(
-          `/delete?trackName=${CRUDtrackName}&stateID=${CRUDstate}`,
-          {
-            method: "DELETE",
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Document deleted successfully:", data);
-        } else {
-          console.error("Failed to delete document:", response.statusText);
-        }
-      } else if (CRUDoperation === "DELETEALL") {
-        console.log(
-          "Deleting everything from the database by calling the deleteall route"
-        );
-        const response = await fetch(`/delete/all`, {
-          method: "DELETE",
-        });
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Document deleted successfully:", data);
-        } else {
-          console.error("Failed to delete all documents:", response.statusText);
-        }
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
   return (
     <div className="App">
       <header className="App-header">
-
         {isLoggedIn ? (
           // if the user has logged into spotify, we can render the distance functionalities
 
           <div>
             {/* we also have to make sure it is not currently working on creating a playlist */}
             <div>
-              {(!makingPlaylist && !madePlaylist) && (<div>
-                <h2>Tell us about your commute!</h2>
-                {/* the place autocomplete functionality for origin */}
-                <h3>Origin:</h3>
-                {gMapsApiKey && (
-                  <GooglePlacesAutocomplete
-                    apiKey={gMapsApiKey}
-                    autocompletionRequest={{
-                      types: ["geocode"],
-                    }}
-                    placeholder="Search for an address"
-                    className="google-places-autocomplete"
-                    selectProps={{
-                      origin,
-                      onChange: (selected) => setOrigin(selected.value.place_id),
-                      styles: {
-                        input: (provided) => ({
-                          ...provided,
-                          color: "black",
-                        }),
-                        option: (provided) => ({
-                          ...provided,
-                          color: "black",
-                        }),
-                        singleValue: (provided) => ({
-                          ...provided,
-                          color: "blue",
-                        }),
-                      },
-                    }}
-                  />
-                )}
-                {/* {origin && <p>Origin: {origin}</p>} */}
-
-                {/* the place autocomplete functionality for the destination */}
-                <h3>Destination:</h3>
-                {gMapsApiKey && (
-                  <GooglePlacesAutocomplete
-                    apiKey={gMapsApiKey}
-                    autocompletionRequest={{
-                      types: ["geocode"],
-                    }}
-                    placeholder="Search for an address"
-                    className="google-places-autocomplete"
-                    selectProps={{
-                      destination,
-                      onChange: (selected) => {
-                        setDestination(selected.value.place_id);
-                        let s = selected.value.description;
-                        let i = s.search("USA");
-                        let stateStart = i - 4;
-                        setDestState(s.substring(stateStart, stateStart + 2));
-                      },
-                      styles: {
-                        input: (provided) => ({
-                          ...provided,
-                          color: "black",
-                        }),
-                        option: (provided) => ({
-                          ...provided,
-                          color: "black",
-                        }),
-                        singleValue: (provided) => ({
-                          ...provided,
-                          color: "blue",
-                        }),
-                      },
-                    }}
-                  />
-                )}
-                {/* Transportation form */}
-                <form>
-                  {/* <p>Select your preferred transportations:</p> */}
-                  <label>
-                    Select your preferred transportation: <br />
-                    <select className='select-container'
-                      value={transportation}
-                      onChange={(e) => setTransportation(e.target.value)}
-                    >
-                      <option value="driving">Driving</option>
-                      <option value="walking">Walking</option>
-                      <option value="bicycling">Bicycling</option>
-                      <option value="transit">Transit</option>
-                    </select>
-                  </label>
-                </form>
-                {/* {destination && (
-                <p>
-                  Destination: {destination} AND in state: {destState}
-                </p>
-              )} */}
-              </div>)}
-
-              {/* TODO: currently needs to be called to get the distance, how should we 
-                  make this into one single button */}
-              {/* calls the getRoute funcion which gets the distance of the objects */}
-              {(origin && destination && transportation && !makingPlaylist && !madePlaylist) && (
+              {!makingPlaylist && !madePlaylist && (
                 <div>
-                  <button className="med-button" onClick={getRoute}>Submit</button>
-                  <br />
+                  <h2>Tell us about your commute!</h2>
+                  {/* the place autocomplete functionality for origin */}
+                  <h3>Origin:</h3>
+                  {gMapsApiKey && (
+                    <GooglePlacesAutocomplete
+                      apiKey={gMapsApiKey}
+                      autocompletionRequest={{
+                        types: ["geocode"],
+                      }}
+                      placeholder="Search for an address"
+                      className="google-places-autocomplete"
+                      selectProps={{
+                        origin,
+                        onChange: (selected) =>
+                          setOrigin(selected.value.place_id),
+                        styles: {
+                          input: (provided) => ({
+                            ...provided,
+                            color: "black",
+                          }),
+                          option: (provided) => ({
+                            ...provided,
+                            color: "black",
+                          }),
+                          singleValue: (provided) => ({
+                            ...provided,
+                            color: "blue",
+                          }),
+                        },
+                      }}
+                    />
+                  )}
+
+                  {/* the place autocomplete functionality for the destination */}
+                  <h3>Destination:</h3>
+                  {gMapsApiKey && (
+                    <GooglePlacesAutocomplete
+                      apiKey={gMapsApiKey}
+                      autocompletionRequest={{
+                        types: ["geocode"],
+                      }}
+                      placeholder="Search for an address"
+                      className="google-places-autocomplete"
+                      selectProps={{
+                        destination,
+                        onChange: (selected) => {
+                          setDestination(selected.value.place_id);
+                          let s = selected.value.description;
+                          let i = s.search("USA");
+                          let stateStart = i - 4;
+                          setDestState(s.substring(stateStart, stateStart + 2));
+                        },
+                        styles: {
+                          input: (provided) => ({
+                            ...provided,
+                            color: "black",
+                          }),
+                          option: (provided) => ({
+                            ...provided,
+                            color: "black",
+                          }),
+                          singleValue: (provided) => ({
+                            ...provided,
+                            color: "blue",
+                          }),
+                        },
+                      }}
+                    />
+                  )}
+                  {/* Transportation form */}
+                  <form>
+                    {/* <p>Select your preferred transportations:</p> */}
+                    <label>
+                      Select your preferred transportation: <br />
+                      <select
+                        className="select-container"
+                        value={transportation}
+                        onChange={(e) => setTransportation(e.target.value)}
+                      >
+                        <option value="driving">Driving</option>
+                        <option value="walking">Walking</option>
+                        <option value="bicycling">Bicycling</option>
+                        <option value="transit">Transit</option>
+                      </select>
+                    </label>
+                  </form>
                 </div>
               )}
-              {(duration && !makingPlaylist && !madePlaylist) && <p>Your commute will be: {duration} seconds</p>}
 
+              {origin &&
+                destination &&
+                transportation &&
+                !makingPlaylist &&
+                !madePlaylist && (
+                  <div>
+                    <button className="med-button" onClick={getRoute}>
+                      Submit
+                    </button>
+                    <br />
+                  </div>
+                )}
+              {duration && !makingPlaylist && !madePlaylist && (
+                <p>Your commute will be: {duration} seconds</p>
+              )}
 
               {/* TODO: again, should be able to make this and getRoute together*/}
-              {(duration && !makingPlaylist && !madePlaylist) && (
+              {duration && !makingPlaylist && !madePlaylist && (
                 <div>
                   <button
                     className="large-button"
@@ -363,7 +274,7 @@ function App() {
                 </div>
               )}
 
-              {(makingPlaylist) && (
+              {makingPlaylist && (
                 // <p>making playlist...</p>
                 <Spinner /> // Render spinner while loading
               )}
@@ -381,32 +292,22 @@ function App() {
               </div>
 
               {madePlaylist && (
-                <button className='large-button' onClick={() => {
-                  setMade(false);
-                  setDestination(null);
-                  setDestState(null);
-                  setOrigin(null);
-                  setDuration(null);
-                  setEmbeddingLink(false);
-                  setMakingPlaylist(false);
-                }}>Make Another Playlist!</button>
+                <button
+                  className="large-button"
+                  onClick={() => {
+                    setMade(false);
+                    setDestination(null);
+                    setDestState(null);
+                    setOrigin(null);
+                    setDuration(null);
+                    setEmbeddingLink(false);
+                    setMakingPlaylist(false);
+                  }}
+                >
+                  Make Another Playlist!
+                </button>
               )}
-
             </div>
-
-            {/* 
-              TODO: we can display something after the playlist has been made, but idk what 
-              currently shows state of playlists right before adding the new playlist we just made :0
-            */}
-            {/* {madePlaylist ? (
-              <ul>
-                {playlists.map((playlist) => (
-                  <li key={playlist.id}>{playlist.name}</li>
-                ))}
-              </ul>
-            ) : (
-              <></>
-            )} */}
           </div>
         ) : (
           // log in page for spotify
@@ -425,97 +326,3 @@ function App() {
 }
 
 export default App;
-
-
-
-// // {/* creating the form for adding values to the database */}
-// <div className="DB-form">
-// <form onSubmit={handleCRUDformsubmit}>
-//   <label>
-//     Track name:
-//     <input
-//       type="text"
-//       value={CRUDtrackName}
-//       onChange={(e) => setCRUDtrackName(e.target.value)}
-//     />
-//   </label>
-//   <br />
-//   <label>
-//     Select the state by abbreviation:
-//     <select
-//       value={CRUDstate}
-//       onChange={(e) => setCRUDstate(e.target.value)}
-//     >
-//       {/* <option value="">Select State</option> */}
-//       <option value="AL">AL</option>
-//       <option value="AK">AK</option>
-//       <option value="AZ">AZ</option>
-//       <option value="AR">AR</option>
-//       <option value="CA">CA</option>
-//       <option value="CO">CO</option>
-//       <option value="CT">CT</option>
-//       <option value="DE">DE</option>
-//       <option value="DC">DC</option>
-//       <option value="FL">FL</option>
-//       <option value="GA">GA</option>
-//       <option value="HI">HI</option>
-//       <option value="ID">ID</option>
-//       <option value="IL">IL</option>
-//       <option value="IN">IN</option>
-//       <option value="IA">IA</option>
-//       <option value="KS">KS</option>
-//       <option value="KY">KY</option>
-//       <option value="LA">LA</option>
-//       <option value="ME">ME</option>
-//       <option value="MD">MD</option>
-//       <option value="MA">MA</option>
-//       <option value="MI">MI</option>
-//       <option value="MN">MN</option>
-//       <option value="MS">MS</option>
-//       <option value="MO">MO</option>
-//       <option value="MT">MT</option>
-//       <option value="NE">NE</option>
-//       <option value="NV">NV</option>
-//       <option value="NH">NH</option>
-//       <option value="NJ">NJ</option>
-//       <option value="NM">NM</option>
-//       <option value="NY">NY</option>
-//       <option value="NC">NC</option>
-//       <option value="ND">ND</option>
-//       <option value="OH">OH</option>
-//       <option value="OK">OK</option>
-//       <option value="OR">OR</option>
-//       <option value="PA">PA</option>
-//       <option value="RI">RI</option>
-//       <option value="SC">SC</option>
-//       <option value="SD">SD</option>
-//       <option value="TN">TN</option>
-//       <option value="TX">TX</option>
-//       <option value="UT">UT</option>
-//       <option value="VT">VT</option>
-//       <option value="VA">VA</option>
-//       <option value="WA">WA</option>
-//       <option value="WV">WV</option>
-//       <option value="WI">WI</option>
-//       <option value="WY">WY</option>
-//     </select>
-//   </label>
-//   <br />
-//   <label>
-//     Select the CRUD operation you want to do: <br />
-//     <select
-//       value={CRUDoperation}
-//       onChange={(e) => setCRUDoperation(e.target.value)}
-//     >
-//       <option value="CREATE">CREATE</option>
-//       <option value="READ">READ</option>
-//       <option value="READALL">READALL</option>
-//       <option value="DELETE">DELETE</option>
-//       <option value="DELETEALL">DELETEALL</option>
-//       {/* <option value="UPDATE">UPDATE</option> */}
-//     </select>
-//   </label>
-//   <button type="submit">Submit</button>
-// </form>
-// </div>
-

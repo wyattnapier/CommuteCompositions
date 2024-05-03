@@ -54,11 +54,11 @@ db = client['commuting']
 collection = db['tracks'] 
 
 ### filling in the database
-# Define the data to insert into the collection
+# Define the data to insert into the collection from the json file
 f = open('db.json')
 state_tracks_data = json.load(f)
 
-# Insert the data into the collection
+# Insert the data into the collection that was loaded from the database
 for state_track in state_tracks_data:
     state = state_track["state"]
     tracks = state_track["tracks"]
@@ -93,69 +93,6 @@ def create_document():
         print("making a new document oof")
         result = collection.insert_one(data)
         return jsonify({'message': 'Document created successfully', 'id': str(result.inserted_id)})
-
-# Route to read all documents
-@app.route('/read', methods=['GET'])
-def read_documents():
-    documents = list(collection.find({}))  # Retrieve all documents
-    # Convert ObjectId to string for each document
-    for doc in documents:
-        doc['_id'] = str(doc['_id'])
-    # Serialize documents to JSON
-    serialized_documents = json_util.dumps(documents)
-    print("we got here?")
-    return serialized_documents
-
-@app.route('/readstate', methods=['GET'])
-def read_state_document():
-    selectedState = request.args.get('selectedState')
-    
-    document = collection.find_one({'_id': selectedState})
-    
-    if document:
-        tracks = document.get('tracks', [])
-        return jsonify({'tracks': tracks})
-    else:
-        return jsonify({'message': 'Document not found'}), 404
-
-
-# Route to read a specific document based on selectedState and trackID
-@app.route('/read', methods=['GET'])
-def read_document():
-    selectedState = request.args.get('selectedState')
-    trackName = request.args.get('trackName')
-    
-    document = collection.find_one({'selectedState': selectedState, 'trackName': trackName})
-    
-    if document:
-        # Convert ObjectId to string
-        document['_id'] = str(document['_id'])
-        return jsonify(document)
-    else:
-        return jsonify({'message': 'Document not found'}), 404
-
-# Route to delete a document
-@app.route('/delete', methods=['DELETE'])
-def delete_document():
-    trackName = request.args.get('trackName')
-    stateID = request.args.get('stateID')
-
-    # Construct a query to find the document based on both trackName and stateID
-    query = {'trackName': trackName, 'stateID': stateID}
-
-    result = collection.delete_one(query)
-    if result.deleted_count > 0:
-        return jsonify({'message': 'Document deleted successfully'})
-    else:
-        return jsonify({'message': 'Document not found'}), 404
-
-# Route to delete all documents from the collection
-@app.route('/delete/all', methods=['DELETE'])
-def delete_all_documents():
-    result = collection.delete_many({})
-    deleted_count = result.deleted_count
-    return jsonify({'message': f'{deleted_count} documents deleted successfully'})
-
 
 
 #i dont think we are ever able to actually access this 
@@ -244,18 +181,6 @@ def create_spotify_oauth():
     scope='user-library-read playlist-modify-public playlist-modify-private'
     )
 
-
-# @app.route('/logout')
-# def logout_func():
-#   session.clear()
-#   cache_file_path = "/venv/.cache"
-#   delete_cache_file(cache_file_path)
-#   auth_url = create_spotify_oauth().get_authorize_url()
-    
-#   # Redirect the user to the Spotify OAuth authorization URL
-#   return redirect(auth_url)
-#   # return "LOGGED OUT"
-
 #called from the front end to get login status  
 @app.route('/ret')
 def return_oauth():
@@ -269,17 +194,14 @@ def return_oauth():
 @app.route('/createPlaylist')
 def create_playlist():
   try: 
-    print(1)
     #get the spotify token info for access to spotify
     token_info = getToken() 
     if not token_info:
       return jsonify({"error": "No token info found"}), 401
-    print(2)
     #get the access token so we are able to make the playlist
     access_token = token_info['access_token']
     sp = spotipy.Spotify(auth=access_token)
     user_id = sp.current_user()['id']
-    print(3)
     #create new playlist 
     new_playlist = sp.user_playlist_create(
        user=user_id,
@@ -288,13 +210,7 @@ def create_playlist():
        collaborative=False,
        description="Made with LOVE (and like our 411 project)"
     )
-    print(4)
     playlist_id = new_playlist['id']
-    # playlist_external_url = new_playlist['external_urls']['spotify']
-    # print("external url:", playlist_external_url)
-    # playlist_uri = new_playlist['uri']
-    # print("playlist_uri:", playlist_uri)
-    print(5)
     #get the length that was passed in through the request
     length = int(request.args.get('length'))
     selectedState = request.args.get('selectedState')
@@ -302,9 +218,8 @@ def create_playlist():
     print("random tracks:", random_tracks)
 
     sp.user_playlist_add_tracks(user_id, playlist_id, random_tracks)
-    print(6)
-    #right now just returns the whole playlist? 
-    #TODO: figure out what we acc need from this playlist and change return value
+
+
     return jsonify(new_playlist)
   except Exception as e:
     # Handle exceptions and log errors
@@ -337,20 +252,7 @@ def get_random_tracks(sp, length, selectedState):
          i+= 1
          continue; # we will just be repeating if we try to put these in the database at this point because we'll have added all of the db tracks already
       
-      # random_db_index = (i+random_offset+1)%len(options['tracks']) # the +1 is just for fun
-      # print("random db index:", random_db_index, " i:", i, " random_offset:", random_offset, " len(options):", len(options['tracks']))
       random_db_index = stariter
-      
-      ### trying to fancily parse the artists and tracks
-      # dbquery = options['tracks'][random_db_index] # we need them in an array to do this
-      # print("dbquery:", dbquery)
-      # dbarti = dbquery.find('-')
-      # # print("dbarti:", dbarti)
-      # dbtrack = dbquery[:dbarti-1]
-      # dbart = dbquery[dbarti+2:]
-      # print("after splitting track:", dbtrack, " and artist:", dbart)
-      # query = "track:" + str(dbtrack) + "artist:" + str(dbart)
-      # print("query from db: ", query)
 
       ### giving up on fancily parsing
       query = options['tracks'][random_db_index] 
