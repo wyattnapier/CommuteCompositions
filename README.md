@@ -1,20 +1,21 @@
 # Commute Compositions #
 ### Setup ###
-#### To setup the code first open a new terminal and git clone the repositiory and then cd into the main folder:
+#### To setup the code first open a new terminal and git clone the repositiory 
+#### Then cd into the main folder:
 ``` 
 cd 411proj
 npm i react-spotify-embed
 ```
-#### Then, once you're in that file, you need to start up your virtual environment with the following sequence of commands:
+#### Once you're in that file, you need to start up your virtual environment with the following sequence of commands:
 ```
 python3 -m venv venv
 source venv/bin/activate
 ```
-#### Then, the command line prompt should instead look like this:
+#### The command line prompt should now look like this:
 ```
 (venv) $ _
 ```
-#### If you haven't yet imported any packages, you will need to run the following commands:
+#### You will need to run the following commands to import packages:
 ```
 pip install flask
 pip install spotipy
