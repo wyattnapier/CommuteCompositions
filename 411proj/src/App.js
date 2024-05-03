@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
+import './spinner.css'
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { Spotify } from "react-spotify-embed";
 
@@ -20,6 +21,14 @@ function App() {
   const [CRUDstate, setCRUDstate] = useState("MA");
   const [embeddingLink, setEmbeddingLink] = useState(null);
   const [makingPlaylist, setMakingPlaylist] = useState(false);
+
+  function Spinner() {
+    return (
+      <div className="spinner-container">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     fetchLoggedIn();
@@ -338,9 +347,9 @@ function App() {
               {/* TODO: currently needs to be called to get the distance, how should we 
                   make this into one single button */}
               {/* calls the getRoute funcion which gets the distance of the objects */}
-              {(origin && destination && transportation) && (
+              {(origin && destination && transportation && !makingPlaylist && !madePlaylist) && (
                 <div>
-                  <button className='large-button' onClick={getRoute}>Submit</button>
+                  <button onClick={getRoute}>Submit</button>
                   <br />
                 </div>
               )}
@@ -348,7 +357,7 @@ function App() {
 
 
               {/* TODO: again, should be able to make this and getRoute together*/}
-              {(origin && destination && !makingPlaylist) && (
+              {(duration && !makingPlaylist) && (
                 <div>
                   <button
                     className="large-button"
@@ -365,7 +374,20 @@ function App() {
               )}
 
               {(makingPlaylist) && (
-                <p>making playlist...</p>
+                // <p>making playlist...</p>
+                <Spinner /> // Render spinner while loading
+              )}
+
+              {madePlaylist && (
+                <button onClick={() => {
+                  setMade(false);
+                  setDestination(null);
+                  setDestState(null);
+                  setOrigin(null);
+                  setDuration(null);
+                  setEmbeddingLink(false);
+                  setMakingPlaylist(false);
+                }}>Make Another Playlist!</button>
               )}
             </div>
 
@@ -373,7 +395,7 @@ function App() {
               TODO: we can display something after the playlist has been made, but idk what 
               currently shows state of playlists right before adding the new playlist we just made :0
             */}
-            {madePlaylist ? (
+            {/* {madePlaylist ? (
               <ul>
                 {playlists.map((playlist) => (
                   <li key={playlist.id}>{playlist.name}</li>
@@ -381,7 +403,7 @@ function App() {
               </ul>
             ) : (
               <></>
-            )}
+            )} */}
           </div>
         ) : (
           // log in page for spotify
