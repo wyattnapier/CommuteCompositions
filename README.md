@@ -1,4 +1,7 @@
 # Commute Compositions #
+### Video ###
+Link to video with all requirements: 
+https://drive.google.com/file/d/1i4bwppqjvZQp9YbLzb0bw8uE9DbGMhhY/view?usp=drive_link
 ### Setup ###
 #### To setup the code first open a new terminal and git clone the repositiory 
 #### Then cd into the main folder:
