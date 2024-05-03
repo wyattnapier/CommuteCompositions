@@ -31,9 +31,4 @@ yarn start-api
 ```
 yarn start
 ```
-### In a third terminal, Terminal C, you should navigate to the api directory and then once again start the virtual environment. Then, you want to start the database.
-```
-source venv/bin/activate
-(venv) $ mongosh
-```
 #### Now the app should be running and you can open it up by clicking on the links in the terminals.
